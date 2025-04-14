@@ -53,8 +53,8 @@
   <div class="dashboard-container">
     <h2>Welcome, Buyer!</h2>
     <p>Logged in as: {{ email }}</p>
-
-    <a href="#">Browse Products</a>
+    <!-- updated the browse products link so that it redirects dynamically to the categories page -->
+    <a href="{{ url_for('categories', parent='All') }}">Browse Products</a>
     <a href="#">My Cart</a>
     <a href="#">My Orders</a>
     <a href="#">Profile</a>

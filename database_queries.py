@@ -498,6 +498,70 @@ def get_user_role(email: str) -> str:
     conn.close()
     return role
 
+# this function retrieves subcategories from the database for a given parent category
+def get_subcategories(parent_category: str) -> list:
+    conn, cursor = connect()  # connect to the database
+    if conn is None or cursor is None:
+        return []  # if connection fails, return an empty list
+
+    # if the parent category is "All", attempt to get top-level categories defined in the categories table
+    if parent_category == "All":
+        query = "SELECT category_name FROM categories WHERE parent_category = %s"
+        cursor.execute(query, ("All",))
+        results = cursor.fetchall()  # fetch all matching rows
+        # fallback: if no top-level categories were defined in the categories table,
+        # retrieve distinct categories from the product_listings table that are non-null and non-empty
+        if not results:
+            query = "SELECT DISTINCT category FROM product_listings WHERE category IS NOT NULL AND category <> ''"
+            cursor.execute(query)
+            results = cursor.fetchall()
+    else:
+        # if the parent is a specific category, query the categories table for its subcategories
+        query = "SELECT category_name FROM categories WHERE parent_category = %s"
+        cursor.execute(query, (parent_category,))
+        results = cursor.fetchall()  # fetch all matching rows
+
+    cursor.close()
+    conn.close()
+    # process the fetched rows and return a simple list of subcategory names
+    return [row[0] for row in results]
+
+# this function retrieves products from the database based on a given category
+def get_products_by_category(category: str) -> list:
+    conn, cursor = connect()  # connect to the database
+    if conn is None or cursor is None:
+        return []  # if connection fails, return an empty list
+
+    # SQL query to retrieve product details from product_listings matching the provided category
+    query = """SELECT seller_email, listing_id, product_title, product_name, 
+                      product_description, quantity, product_price, status 
+               FROM product_listings 
+               WHERE category = %s"""
+    cursor.execute(query, (category,))
+    results = cursor.fetchall()  # fetch all matching product records
+    cursor.close()
+    conn.close()
+    # return the list of products as tuples
+    return results
+
+# this function retrieves the full details of a specific product listing given seller email and listing id
+def get_product_details(seller_email: str, listing_id: int) -> tuple:
+    conn, cursor = connect()  # connect to the database
+    if conn is None or cursor is None:
+        return None  # if connection fails, return None
+
+    # SQL query to get the full details of one product listing that matches the seller email and listing id
+    query = """SELECT seller_email, listing_id, category, product_title, product_name, 
+                      product_description, quantity, product_price, status 
+               FROM product_listings 
+               WHERE seller_email = %s AND listing_id = %s"""
+    cursor.execute(query, (seller_email, listing_id))
+    result = cursor.fetchone()  # fetch the product details as a single record (tuple)
+    cursor.close()
+    conn.close()
+    # return the product details tuple (or None if not found)
+    return result
+
 if __name__ == '__main__':
     create_tables()
     populate_all_tables()

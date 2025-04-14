@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Categories</title>
+  <style>
+    /* similar styling to buyer dashboard */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .dashboard-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      width: 800px;
+      margin-top: 20px;
+    }
+    .dashboard-container h1 {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .section-header {
+      margin-bottom: 15px;
+      font-size: 20px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 5px;
+    }
+    .subcategories-list {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 30px;
+    }
+    .subcategories-list li {
+      margin-bottom: 10px;
+    }
+    .subcategories-list li a {
+      text-decoration: none;
+      color: #007bff;
+      font-weight: bold;
+    }
+    .subcategories-list li a:hover {
+      text-decoration: underline;
+    }
+    .product-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .product-card {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 15px;
+      width: calc(33% - 20px);
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .product-card h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+    .btn-secondary, .btn-primary {
+      display: inline-block;
+      padding: 10px 15px;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: background 0.3s ease;
+      margin-top: 10px;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: #fff;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    .btn-primary {
+      background: #007bff;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h1>Category: {{ parent }}</h1>
+
+    <div class="section-header">Subcategories</div>
+    {% if subcategories %}
+      <ul class="subcategories-list">
+        {% for sub in subcategories %}
+          <li>
+            <a href="{{ url_for('categories') }}?parent={{ sub }}">{{ sub }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No subcategories available.</p>
+    {% endif %}
+
+    <hr>
+
+    <div class="section-header">Products</div>
+    {% if products %}
+      <div class="product-list">
+        {% for product in products %}
+          <div class="product-card">
+            <h3>{{ product[2] }} - {{ product[3] }}</h3>
+            <p>{{ product[4] }}</p>
+            <p><strong>Price:</strong> ${{ product[6] }}</p>
+            <a href="{{ url_for('product_detail', seller_email=product[0], listing_id=product[1]) }}" class="btn-primary">View Details</a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No products found in this category.</p>
+    {% endif %}
+
+    <hr>
+    <a href="{{ url_for('categories') }}?parent=All" class="btn-secondary">Back to Root</a>
+  </div>
+</body>
+</html>

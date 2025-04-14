@@ -1,5 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for
-from database_queries import get_user_role, fetch_user_data
+from flask import Flask, render_template, request, redirect, url_for, flash
+from database_queries import fetch_user_data, get_user_role, get_subcategories, get_products_by_category, get_product_details
 
 # create flask app instance
 app = Flask(__name__)
@@ -79,6 +79,27 @@ def helpdesk():
     # render helpdesk dashboard template with email variable
     return render_template('helpdesk_staff.html', email=email)
 
+# route to dynamically display category hierarchy and products
+@app.route('/categories')
+def categories():
+    parent = request.args.get('parent', 'All')
+    if parent == "All":
+        # for the root ("All"), dynamically retrieve top-level subcategories
+        subcategories = get_subcategories(parent)
+        products = []  # by design, "All" does not have products directly
+    else:
+        subcategories = get_subcategories(parent)
+        products = get_products_by_category(parent)
+    return render_template('categories.html', parent=parent, subcategories=subcategories, products=products)
+
+# route to display product details dynamically
+@app.route('/product/<seller_email>/<int:listing_id>')
+def product_detail(seller_email, listing_id):
+    product = get_product_details(seller_email, listing_id)
+    if product is None:
+        flash("product not found")
+        return redirect(url_for('categories'))
+    return render_template('product_detail.html', product=product)
 
 # main driver to run flask app
 if __name__ == '__main__':
