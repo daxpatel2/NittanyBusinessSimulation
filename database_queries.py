@@ -20,8 +20,6 @@ def connect():
         print("Error connecting to the database:", e)
         return None, None
 
-
-
 def create_tables():
     conn, cursor = connect()
     if conn is None or cursor is None:
@@ -475,6 +473,30 @@ def fetch_user_data(email: str, password: str) -> Optional[bool]:
         return False
 
     return True
+
+# this function returns the role of a user based on their email by checking the helpdesk, buyer, and sellers tables in order
+def get_user_role(email: str) -> str:
+    conn, cursor = connect()
+    if conn is None or cursor is None:
+        return None
+    role = None
+    # check if the email is in the helpdesk table
+    cursor.execute("SELECT email FROM helpdesk WHERE email = %s", (email,))
+    if cursor.fetchone():
+        role = "helpdesk"
+    else:
+        # check if the email is in the buyer table
+        cursor.execute("SELECT email FROM buyer WHERE email = %s", (email,))
+        if cursor.fetchone():
+            role = "buyer"
+        else:
+            # check if the email is in the sellers table
+            cursor.execute("SELECT email FROM sellers WHERE email = %s", (email,))
+            if cursor.fetchone():
+                role = "seller"
+    cursor.close()
+    conn.close()
+    return role
 
 if __name__ == '__main__':
     create_tables()

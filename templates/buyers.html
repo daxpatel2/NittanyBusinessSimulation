@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Buyer Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .dashboard-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      width: 350px;
+      text-align: center;
+    }
+
+    .dashboard-container h2 {
+      margin-bottom: 10px;
+    }
+
+    .dashboard-container p {
+      margin-bottom: 20px;
+      color: #555;
+    }
+
+    .dashboard-container a {
+      display: block;
+      background: #007bff;
+      color: #fff;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 3px;
+      text-decoration: none;
+      transition: background 0.3s ease;
+    }
+
+    .dashboard-container a:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <h2>Welcome, Buyer!</h2>
+    <p>Logged in as: {{ email }}</p>
+
+    <a href="#">Browse Products</a>
+    <a href="#">My Cart</a>
+    <a href="#">My Orders</a>
+    <a href="#">Profile</a>
+    <a href="/">Logout</a>
+  </div>
+</body>
+</html>
