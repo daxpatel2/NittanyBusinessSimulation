@@ -46,17 +46,17 @@
 </head>
 <body>
   <div class="dashboard">
-    <h2>welcome, buyer!</h2>
-    <p>logged in as: {{ email }}</p>
+    <h2>Welcome, Buyer!</h2>
+    <p>Logged in as: {{ email }}</p>
 
     <!-- browse products -->
     <a href="{{ url_for('categories') }}">Browse Products</a>
 
     <!-- view past orders -->
-    <a href="{{ url_for('orders') }}">my orders</a>
+    <a href="{{ url_for('orders') }}">My Orders</a>
 
     <!-- logout -->
-    <a href="/">logout</a>
+    <a href="/">Logout</a>
   </div>
 </body>
 </html>

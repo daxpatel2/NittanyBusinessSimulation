@@ -37,13 +37,13 @@
         </select>
       </div>
       <div id="new_card" style="display:none;">
-        <div class="form-group"><label>card number</label><input name="cc_num"></div>
-        <div class="form-group"><label>type</label><input name="cc_type"></div>
-        <div class="form-group"><label>exp month</label><input name="cc_month" type="number"></div>
-        <div class="form-group"><label>exp year</label><input name="cc_year" type="number"></div>
+        <div class="form-group"><label>Card Number</label><input name="cc_num"></div>
+        <div class="form-group"><label>Type</label><input name="cc_type"></div>
+        <div class="form-group"><label>Exp Month</label><input name="cc_month" type="number"></div>
+        <div class="form-group"><label>Exp Year</label><input name="cc_year" type="number"></div>
         <div class="form-group"><label>CVC</label><input name="cc_cvc"></div>
       </div>
-      <button type="submit">confirm order</button>
+      <button type="submit">Confirm Order</button>
       <a href="{{ url_for('categories') }}?parent=All" class="btn-secondary" style="margin-left:10px;">Cancel</a>
     </form>
   </div>

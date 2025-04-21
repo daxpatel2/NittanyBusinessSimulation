@@ -561,11 +561,12 @@ def get_product_details(seller_email: str, listing_id: int) -> tuple:
     conn.close()
     # return the product details tuple (or None if not found)
     return result
+
 # fetches all listings for a given seller
 def get_listings_by_seller(seller_email: str) -> list:
-    conn, cursor = connect()
+    conn, cursor = connect()  # open DB connection and cursor
     if not conn:
-        return []
+        return []  # return empty if connection fails
     query = """
         SELECT listing_id, category, product_title, product_name, product_description,
                quantity, product_price, status
@@ -573,11 +574,12 @@ def get_listings_by_seller(seller_email: str) -> list:
          WHERE seller_email = %s
          ORDER BY listing_id
     """
-    cursor.execute(query, (seller_email,))
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return rows
+    cursor.execute(query, (seller_email,))  # execute parameterized query
+    rows = cursor.fetchall()  # fetch all results
+    cursor.close()  # close cursor
+    conn.close()  # close connection
+    return rows  # return list of listings
+
 
 # inserts a new product listing for the given seller
 def insert_product_listing(
@@ -589,16 +591,16 @@ def insert_product_listing(
     quantity: int,
     product_price: float
 ) -> bool:
-    conn, cursor = connect()
+    conn, cursor = connect()  # open DB connection
     if not conn:
-        return False
-    # determine next listing_id
+        return False  # abort if connection fails
+    # determine the next listing_id for this seller
     cursor.execute(
         "SELECT COALESCE(MAX(listing_id), 0) FROM product_listings WHERE seller_email = %s",
         (seller_email,)
     )
-    next_id = cursor.fetchone()[0] + 1
-    status = 1  # active by default
+    next_id = cursor.fetchone()[0] + 1  # increment from max or start at 1
+    status = 1  # default status: active
     insert_sql = """
         INSERT INTO product_listings
             (seller_email, listing_id, category, product_title, product_name,
@@ -606,20 +608,27 @@ def insert_product_listing(
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
     """
     try:
+        # execute insert with all fields
         cursor.execute(insert_sql, (
-            seller_email, next_id,
-            category, product_title, product_name,
-            product_description, quantity, product_price,
+            seller_email,
+            next_id,
+            category,
+            product_title,
+            product_name,
+            product_description,
+            quantity,
+            product_price,
             status
         ))
-        conn.commit()
-        return True
+        conn.commit()  # commit transaction
+        return True  # success
     except Exception:
-        conn.rollback()
+        conn.rollback()  # rollback on error
         return False
     finally:
-        cursor.close()
-        conn.close()
+        cursor.close()  # ensure cursor closed
+        conn.close()  # ensure connection closed
+
 
 # updates an existing product listing
 def update_product_listing(
@@ -632,10 +641,10 @@ def update_product_listing(
     quantity: int,
     product_price: float
 ) -> bool:
-    conn, cursor = connect()
+    conn, cursor = connect()  # open DB connection
     if not conn:
-        return False
-    # automatically mark sold if quantity == 0
+        return False  # abort if connection fails
+    # if quantity is zero, mark as sold (status 2) else active (1)
     status = 2 if quantity == 0 else 1
     update_sql = """
         UPDATE product_listings
@@ -650,25 +659,33 @@ def update_product_listing(
            AND listing_id    = %s
     """
     try:
+        # execute update with dynamic parameters
         cursor.execute(update_sql, (
-            category, product_title, product_name,
-            product_description, quantity, product_price,
-            status, seller_email, listing_id
+            category,
+            product_title,
+            product_name,
+            product_description,
+            quantity,
+            product_price,
+            status,
+            seller_email,
+            listing_id
         ))
-        conn.commit()
+        conn.commit()  # commit changes
         return True
     except Exception:
-        conn.rollback()
+        conn.rollback()  # rollback on failure
         return False
     finally:
-        cursor.close()
-        conn.close()
+        cursor.close()  # close cursor
+        conn.close()  # close connection
 
-# soft‑deletes a listing by setting its status to 0 (inactive)
+
+# soft‑deletes a listing by setting its status to inactive (0)
 def set_listing_status(seller_email: str, listing_id: int, status: int) -> bool:
-    conn, cursor = connect()
+    conn, cursor = connect()  # open DB connection
     if not conn:
-        return False
+        return False  # abort if connection fails
     update_sql = """
         UPDATE product_listings
            SET status = %s
@@ -676,141 +693,212 @@ def set_listing_status(seller_email: str, listing_id: int, status: int) -> bool:
            AND listing_id    = %s
     """
     try:
-        cursor.execute(update_sql, (status, seller_email, listing_id))
-        conn.commit()
+        cursor.execute(update_sql, (status, seller_email, listing_id))  # update status field
+        conn.commit()  # commit transaction
         return True
     except Exception:
-        conn.rollback()
+        conn.rollback()  # rollback if error
         return False
     finally:
-        cursor.close()
-        conn.close()
+        cursor.close()  # close cursor
+        conn.close()  # close connection
+
+
+# fetches all credit cards for a given buyer
 def get_credit_cards_by_buyer(buyer_email: str) -> list:
     """return list of (credit_card_num, card_type, expire_month, expire_year)"""
-    conn, cursor = connect()
+    conn, cursor = connect()  # open DB connection
     if not conn:
-        return []
-    cursor.execute("""
+        return []  # return empty if connection fails
+    cursor.execute(
+        """
         SELECT credit_card_num, card_type, expire_month, expire_year
           FROM credit_cards
          WHERE owner_email = %s
-    """, (buyer_email,))
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return rows
+        """,
+        (buyer_email,)
+    )  # execute select query
+    rows = cursor.fetchall()  # fetch results
+    cursor.close()  # close cursor
+    conn.close()  # close connection
+    return rows  # return credit card list
 
+
+# inserts a new credit card for buyer, ignoring duplicates
 def add_credit_card(credit_card_num: str, card_type: str,
                     expire_month: int, expire_year: int,
                     security_code: str, buyer_email: str) -> bool:
-    """insert a new credit card for buyer"""
-    conn, cursor = connect()
+    conn, cursor = connect()  # open DB connection
     if not conn:
-        return False
+        return False  # abort if connection fails
     try:
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO credit_cards
               (credit_card_num, card_type, expire_month, expire_year, security_code, owner_email)
             VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT DO NOTHING
-        """, (credit_card_num, card_type, expire_month, expire_year, security_code, buyer_email))
-        conn.commit()
+            """,
+            (credit_card_num, card_type, expire_month, expire_year, security_code, buyer_email)
+        )  # upsert credit card
+        conn.commit()  # commit insertion
         return True
-    except:
-        conn.rollback()
+    except Exception:
+        conn.rollback()  # rollback on error
         return False
     finally:
-        cursor.close()
-        conn.close()
+        cursor.close()  # close cursor
+        conn.close()  # close connection
 
+
+# inserts a new order and updates inventory, product status, and seller balance atomically
 def insert_order(seller_email: str, listing_id: int,
                  buyer_email: str, quantity: int,
                  credit_card_num: str) -> bool:
-    """
-    insert a new order, update inventory, product status, and seller balance atomically
-    """
-    conn, cursor = connect()
+    conn, cursor = connect()  # open DB connection
     if not cursor:
-        return False
+        return False  # abort if connection fails
     try:
-        # 1) lock the product row
-        cursor.execute("""
+        # 1) lock the specific product row to prevent concurrent modifications
+        cursor.execute(
+            """
             SELECT product_price, quantity
               FROM product_listings
              WHERE seller_email=%s AND listing_id=%s
              FOR UPDATE
-        """, (seller_email, listing_id))
-        row = cursor.fetchone()
+            """,
+            (seller_email, listing_id)
+        )
+        row = cursor.fetchone()  # fetch price and available quantity
         if not row:
-            raise Exception("listing not found")
+            raise Exception("listing not found")  # no such listing
         unit_price, avail = row
 
-        # 2) check inventory
+        # 2) ensure requested quantity is available
         if quantity > avail:
             raise Exception("not enough inventory")
-        total = unit_price * quantity
+        total = unit_price * quantity  # calculate total payment
 
-        # 2.5) generate a new order_id
+        # 2.5) generate a new unique order ID
         cursor.execute("SELECT COALESCE(MAX(order_id), 0) FROM orders")
         next_order_id = cursor.fetchone()[0] + 1
 
-        # 3) insert into orders with explicit order_id
-        cursor.execute("""
+        # 3) insert the new order record
+        cursor.execute(
+            """
             INSERT INTO orders
               (order_id, seller_email, listing_id, buyer_email, date, quantity, payment)
             VALUES (%s, %s, %s, %s, CURRENT_DATE, %s, %s)
-        """, (next_order_id,
-              seller_email, listing_id,
-              buyer_email, quantity, total))
+            """,
+            (next_order_id, seller_email, listing_id, buyer_email, quantity, total)
+        )
 
-        # 4) update inventory and status
+        # 4) update product inventory and status after sale
         new_qty = avail - quantity
-        new_status = 2 if new_qty == 0 else 1
-        cursor.execute("""
+        new_status = 2 if new_qty == 0 else 1  # sold out? mark sold else active
+        cursor.execute(
+            """
             UPDATE product_listings
                SET quantity = %s,
                    status   = %s
              WHERE seller_email = %s
                AND listing_id   = %s
-        """, (new_qty, new_status, seller_email, listing_id))
+            """,
+            (new_qty, new_status, seller_email, listing_id)
+        )
 
-        # 5) update seller balance
-        cursor.execute("""
+        # 5) increment seller's balance by sale amount
+        cursor.execute(
+            """
             UPDATE sellers
                SET balance = balance + %s
              WHERE email = %s
-        """, (total, seller_email))
+            """,
+            (total, seller_email)
+        )
 
-        conn.commit()
+        conn.commit()  # commit entire transaction
         return True
 
     except Exception as e:
-        print("order error:", e)
-        conn.rollback()
+        print("order error:", e)  # log error details
+        conn.rollback()  # rollback on any failure
         return False
-
     finally:
-        cursor.close()
-        conn.close()
+        cursor.close()  # close cursor
+        conn.close()  # close connection
 
+
+# fetches all orders for a given buyer, sorted by most recent date
 def get_orders_by_buyer(buyer_email: str) -> list:
     """
     return list of
       (order_id, date, seller_email, listing_id, quantity, payment)
     """
-    conn, cursor = connect()
+    conn, cursor = connect()  # open DB connection
     if not conn:
-        return []
-    cursor.execute("""
+        return []  # abort if connection fails
+    cursor.execute(
+        """
         SELECT order_id, date, seller_email, listing_id, quantity, payment
           FROM orders
          WHERE buyer_email = %s
          ORDER BY date DESC
-    """, (buyer_email,))
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return rows
+        """,
+        (buyer_email,)
+    )  # execute select sorted by date
+    rows = cursor.fetchall()  # fetch results
+    cursor.close()  # close cursor
+    conn.close()  # close connection
+    return rows  # return list of orders
+
+
+# inserts or updates a review for a given order
+
+def insert_review(order_id: int, review_desc: str, rating: int) -> bool:
+    """insert or update a review for a given order"""
+    conn, cursor = connect()  # open DB connection
+    if not conn:
+        return False  # abort if connection fails
+    # upsert review record on order_id conflict
+    sql = """
+        INSERT INTO reviews (order_id, review_desc, rating)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (order_id) DO UPDATE
+          SET review_desc = EXCLUDED.review_desc,
+              rating      = EXCLUDED.rating
+    """
+    try:
+        cursor.execute(sql, (order_id, review_desc, rating))  # execute upsert
+        conn.commit()  # commit transaction
+        return True
+    except Exception as e:
+        print("insert_review error:", e)  # log any error
+        conn.rollback()  # rollback on failure
+        return False
+    finally:
+        cursor.close()  # close cursor
+        conn.close()  # close connection
+
+
+# calculates the average rating for a seller across all reviews
+def get_seller_average_rating(seller_email: str) -> Optional[float]:
+    conn, cursor = connect()  # open DB connection
+    if conn is None or cursor is None:
+        return None  # abort if connection fails
+    # compute average rating, cast to numeric(10,2)
+    sql = """
+        SELECT AVG(r.rating::integer)::numeric(10,2)
+          FROM reviews r
+          JOIN orders o ON r.order_id = o.order_id
+         WHERE o.seller_email = %s
+    """
+    cursor.execute(sql, (seller_email,))  # execute average query
+    result = cursor.fetchone()[0]  # fetch result
+    cursor.close()  # close cursor
+    conn.close()  # close connection
+    return float(result) if result is not None else None  # return average or None
+
 
 if __name__ == '__main__':
     create_tables()

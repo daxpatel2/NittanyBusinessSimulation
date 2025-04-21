@@ -1,66 +1,120 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <title>My Orders</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-      .order-table { margin-top: 30px; }
-      .order-table th, .order-table td { text-align: center; }
-      .btn-back { margin-top: 20px; }
+      body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        max-width: 800px;
+        margin: 40px auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: center;
+      }
+      th {
+        background: #f7f7f7;
+      }
+      .btn, .btn-back {
+        display: inline-block;
+        padding: 8px 12px;
+        background: #007bff;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 3px;
+        transition: background 0.3s ease;
+        margin-right: 5px;
+      }
+      .btn:hover {
+        background: #0056b3;
+      }
+      .btn-back {
+        background: #6c757d;
+      }
+      .btn-back:hover {
+        background: #5a6268;
+      }
+      .no-orders {
+        color: #555;
+      }
     </style>
   </head>
   <body>
-    <div class="container mt-4">
-      <h1>my orders</h1>
+    <div class="container">
+      <h1>My Orders</h1>
 
       {% if orders %}
-        <div class="table-responsive order-table">
-          <table class="table table-bordered">
-            <thead class="thead-light">
+        <table>
+          <thead>
+            <tr>
+              <th>Order id</th>
+              <th>Date</th>
+              <th>Product</th>
+              <th>Quantity</th>
+              <th>Total Paid</th>
+              <th>Seller Rating</th>
+              <th>Review</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
               <tr>
-                <th>order id</th>
-                <th>date</th>
-                <th>product</th>
-                <th>quantity</th>
-                <th>total paid</th>
-                <th>actions</th>
+                <td>{{ order[0] }}</td>
+                <td>{{ order[1] }}</td>
+                <td>
+                  <a href="{{ url_for('product_detail',
+                                       seller_email=order[2],
+                                       listing_id=order[3]) }}">
+                    View Product
+                  </a>
+                </td>
+                <td>{{ order[4] }}</td>
+                <td>${{ order[5] }}</td>
+                <td>
+                  {% if order[6] is not none %}
+                    {{ order[6] }} / 5
+                  {% else %}
+                    n/a
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('review', order_id=order[0]) }}" class="btn">
+                    Review
+                  </a>
+                </td>
+                <td>
+                  <a href="{{ url_for('order_form',
+                                       seller_email=order[2],
+                                       listing_id=order[3]) }}" class="btn">
+                    Reorder
+                  </a>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {% for order in orders %}
-                <tr>
-                  <td>{{ order[0] }}</td>
-                  <td>{{ order[1] }}</td>
-                  <td>
-                    <a href="{{ url_for('product_detail',
-                                         seller_email=order[2],
-                                         listing_id=order[3]) }}">
-                      view product
-                    </a>
-                  </td>
-                  <td>{{ order[4] }}</td>
-                  <td>${{ order[5] }}</td>
-                  <td>
-                    <a href="{{ url_for('checkout',
-                                         seller_email=order[2],
-                                         listing_id=order[3]) }}"
-                       class="btn btn-sm btn-primary">
-                      reorder
-                    </a>
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+            {% endfor %}
+          </tbody>
+        </table>
       {% else %}
-        <p>you have no past orders.</p>
+        <p class="no-orders">You have no past orders.</p>
       {% endif %}
 
-      <a href="{{ url_for('buyer') }}" class="btn btn-secondary btn-back">
-        back to dashboard
-      </a>
+      <a href="{{ url_for('buyer') }}" class="btn-back">Back to dashboard</a>
     </div>
   </body>
 </html>
