@@ -4,6 +4,41 @@
   <meta charset="UTF-8">
   <title>Register Page</title>
   <style>
+      .register-container select {
+      /* full width like inputs */
+      width: 100%;
+      /* same padding & spacing */
+      padding: 10px;
+      margin-bottom: 15px;
+      /* border & rounded corners */
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      /* white background and pointer cursor */
+      background-color: #fff;
+      cursor: pointer;
+      /* remove default focus outline */
+      outline: none;
+      /* for consistent font */
+      font-family: Arial, sans-serif;
+      font-size: 1em;
+      /* add a little right padding so options text doesn’t bump the arrow */
+      padding-right: 30px;
+      /* appearance reset for WebKit/Firefox */
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      /* custom down‑arrow using SVG data‑URI */
+      background-image: url("data:image/svg+xml;charset=UTF-8,<svg fill='%23666' height='10' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'><path d='M0 0l5 6 5-6z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 10px;
+    }
+
+    .register-container select:focus {
+      border-color: #007bff;
+      box-shadow: 0 0 2px rgba(0,123,255,0.5);
+    }
+
     body {
       font-family: Arial, sans-serif;
       background: #f2f2f2;
@@ -70,12 +105,10 @@
       <input type="password"name="password"         placeholder="Create a password" required>
       <input type="password"name="confirm_password" placeholder="Confirm your password" required>
 
-      <label for="role">I am a:</label>
       <select name="role" id="role" required>
         <option value="" disabled selected>Select your role</option>
         <option value="buyer">Buyer</option>
         <option value="seller">Seller</option>
-        <option value="helpdesk">Helpdesk Staff</option>
       </select>
 
       <button type="submit">Register</button>

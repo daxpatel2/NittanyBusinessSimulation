@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Your Profile</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .profile-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      width: 300px;
+    }
+    .profile-container h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .profile-container form {
+      display: flex;
+      flex-direction: column;
+    }
+    .profile-container input[type="text"],
+    .profile-container input[type="email"],
+    .profile-container input[type="password"] {
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    .profile-container button {
+      padding: 10px;
+      background: #007bff;
+      border: none;
+      color: #fff;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .profile-container button:hover {
+      background: #0056b3;
+    }
+    .profile-container .switch-link {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .profile-container .switch-link a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .profile-container .switch-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-container">
+    <h2>My Profile</h2>
+    <form method="post" action="{{ url_for('profile') }}">
+      <label>Email (cannot change):</label>
+
+      <label>New Password <small>(leave blank to keep current)</small>:</label>
+      <input type="password" name="new_password">
+
+      <label>Confirm New Password:</label>
+      <input type="password" name="confirm_password">
+
+      <button type="submit">Save Changes</button>
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul class="flashes">
+        {% for category, msg in messages %}
+          <li class="{{ category }}">{{ msg }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </div>
+</body>
+</html>

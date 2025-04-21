@@ -59,7 +59,6 @@ def register():
 
     # Only run this logic on POST
     if request.method == 'POST':
-        username         = request.form['username']
         email            = request.form['email']
         password         = request.form['password']
         confirm_password = request.form['confirm_password']
@@ -68,12 +67,14 @@ def register():
         # 1) password check
         if password != confirm_password:
             message = "Passwords do not match. Please try again."
+            return render_template('register.html', message=message)
 
         else:
             # 2) try to add new user
             created = add_user_to_database(email, password)
             if not created:
                 message = f"An account with {email} already exists."
+                return render_template('register.html', message=message)
             else:
                 # 3) success → set up session & redirect
                 session['email'] = email
@@ -89,11 +90,6 @@ def register():
                 elif role == 'seller':
                     cursor.execute(
                         "INSERT INTO sellers(email) VALUES (%s) ON CONFLICT DO NOTHING",
-                        (email,)
-                    )
-                else:  # helpdesk
-                    cursor.execute(
-                        "INSERT INTO helpdesk(email) VALUES (%s) ON CONFLICT DO NOTHING",
                         (email,)
                     )
                 conn.commit()
@@ -302,6 +298,62 @@ def checkout(seller_email, listing_id):
     return render_template('checkout.html',
                            product=product,
                            cards=cards)
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    email = session['email']
+    conn, cursor = connect()
+
+    # Fetch current profile info (excluding password!)
+    cursor.execute("""
+      SELECT *
+        FROM users
+       WHERE email = %s
+    """, (email,))
+    user = cursor.fetchone() or (None, None, None)
+    cursor.close()
+    conn.close()
+
+    if request.method == 'POST':
+        new_password  = request.form['new_password']
+        confirm_pw    = request.form['confirm_password']
+        hashed = None
+
+        # 1) If they typed a new password, make sure it matches
+        if new_password:
+            if new_password != confirm_pw:
+                flash("Passwords don’t match.", "error")
+                return render_template('profile.html',
+                           email=email)
+            hashed = hash_password(new_password)
+
+        # 2) Build your UPDATE statement dynamically
+        updates = []
+        params  = []
+
+        if hashed:
+            updates.append("password = %s")
+            params.append(hashed)
+
+        # nothing to do?
+        if updates:
+            sql = "UPDATE users SET " + ", ".join(updates) + " WHERE email = %s"
+            params.append(email)
+
+            conn, cursor = connect()
+            cursor.execute(sql, tuple(params))
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            flash("Profile updated!", "success")
+
+        return redirect(url_for('profile'))
+
+    # GET → render form with existing values
+    return render_template('profile.html',
+                           email=email)
+
 
 
 # Route to show product details, including seller's average rating
