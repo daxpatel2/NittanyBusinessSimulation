@@ -372,6 +372,30 @@ def orders():
     return render_template('orders.html', orders=orders_with_rating)  # render orders page
 
 
+# New route for product search functionality
+@app.route('/search')
+def search_products_route():
+    # Get search parameters from request
+    keywords = request.args.get('keywords', '')
+    min_price_str = request.args.get('min_price', '')
+    max_price_str = request.args.get('max_price', '')
+    sort_by = request.args.get('sort_by', 'relevance')
+
+    # Convert price strings to float if provided
+    min_price = float(min_price_str) if min_price_str else None
+    max_price = float(max_price_str) if max_price_str else None
+
+    # Determine if a search was performed
+    search_performed = bool(keywords or min_price is not None or max_price is not None)
+
+    # Perform search using the database query function
+    products = search_products(keywords, min_price, max_price, sort_by) if search_performed else []
+
+    # Render the search results template
+    return render_template('search_result.html',
+                           products=products,
+                           search_performed=search_performed)
+
 # main driver to run flask app
 if __name__ == '__main__':
     # run flask app with debug mode on (shows detailed error logs in browser)

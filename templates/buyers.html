@@ -48,6 +48,9 @@
   <div class="dashboard">
     <h2>Welcome, Buyer!</h2>
     <p>Logged in as: {{ email }}</p>
+      <!-- search for products -->
+
+    <a href="{{ url_for('search_products_route') }}" class="btn-primary">Search Products</a>
 
     <!-- browse products -->
     <a href="{{ url_for('categories') }}">Browse Products</a>

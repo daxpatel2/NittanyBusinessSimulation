@@ -6,9 +6,9 @@ import psycopg2
 def connect():
     try:
         conn = psycopg2.connect(
-            dbname="project",
-            user="postgres",
-            password="Zakhockey84",
+            dbname="postgres",
+            user="adon",
+            password="1234",
             host="localhost",
             port="5432"
         )
@@ -936,6 +936,86 @@ def get_seller_average_rating(seller_email: str) -> Optional[float]:
     conn.close()  # close connection
     return float(result) if result is not None else None  # return average or None
 
+
+def search_products(
+        keywords=None,
+        min_price=None,
+        max_price=None,
+        sort_by="relevance"):
+    conn, cursor = connect()
+    if conn is None or cursor is None:
+        return []
+
+    # Start building the query
+    query = """
+        SELECT p.seller_email, p.listing_id, p.category, p.product_title, 
+               p.product_name, p.product_description, p.quantity, p.product_price, p.status,
+               s.business_name as seller_name
+        FROM product_listings p
+        JOIN sellers s ON p.seller_email = s.email
+        WHERE p.status = 1
+    """
+
+    params = []
+
+    # Add keyword search if provided
+    if keywords and keywords.strip():
+        # Split keywords into individual terms
+        keyword_terms = keywords.strip().split()
+        keyword_conditions = []
+
+        for term in keyword_terms:
+            # Create ILIKE condition for each searchable field
+            # ILIKE is used for case-insensitive matching
+            term_with_wildcards = f"%{term}%"
+            keyword_conditions.append("""
+                (p.product_title ILIKE %s OR 
+                 p.product_name ILIKE %s OR 
+                 p.product_description ILIKE %s OR 
+                 p.category ILIKE %s OR 
+                 s.business_name ILIKE %s)
+            """)
+            # Add the parameter 5 times for each field in the condition
+            params.extend([term_with_wildcards] * 5)
+
+        # Join all keyword conditions with OR
+        if keyword_conditions:
+            query += " AND (" + " OR ".join(keyword_conditions) + ")"
+
+    # Add price range filters if provided
+    if min_price is not None:
+        query += " AND p.product_price >= %s"
+        params.append(min_price)
+
+    if max_price is not None:
+        query += " AND p.product_price <= %s"
+        params.append(max_price)
+
+    # Add sorting
+    if sort_by == "price_low_high":
+        query += " ORDER BY p.product_price ASC"
+    elif sort_by == "price_high_low":
+        query += " ORDER BY p.product_price DESC"
+    else:  # Default to relevance
+        # For relevance sorting, if keywords are provided, we can use a relevance score
+        # Otherwise, just sort by listing_id
+        if keywords and keywords.strip():
+            # This is a simple relevance implementation
+            # In a real system, you might use more sophisticated scoring
+            query += " ORDER BY p.listing_id DESC"
+        else:
+            query += " ORDER BY p.listing_id DESC"
+
+    try:
+        cursor.execute(query, params)
+        results = cursor.fetchall()
+        return results
+    except Exception as e:
+        print(f"Error searching products: {e}")
+        return []
+    finally:
+        cursor.close()
+        conn.close()
 
 
 if __name__ == '__main__':
