@@ -117,7 +117,6 @@ def logout():
     session.clear()
     return redirect(url_for('home_page'))
 
-
 # route for buyer dashboard
 @app.route('/buyer')
 def buyer():
@@ -126,7 +125,6 @@ def buyer():
         return redirect(url_for('home_page'))
     # render buyer dashboard template with email variable
     return render_template('buyers.html', email=session['email'])
-
 
 # route for seller dashboard
 @app.route('/seller')
@@ -137,7 +135,6 @@ def seller():
     # render seller dashboard template with email variable
     return render_template('sellers.html', email=session['email'])
 
-
 # route for helpdesk dashboard
 @app.route('/helpdesk')
 def helpdesk():
@@ -147,44 +144,50 @@ def helpdesk():
     # render helpdesk dashboard template with email variable
     return render_template('helpdesk_staff.html', email=session['email'])
 
-
+# Route for sellers to view and manage their own listings
 @app.route('/seller/listings')
 def manage_listings():
-    # only seller can manage their listings
+    # ensure only a seller can access this page
     if session.get('role') != 'seller':
-        return redirect(url_for('home_page'))
-    seller_email = session['email']
-    listings = get_listings_by_seller(seller_email)
-    return render_template('seller_listings.html', listings=listings)
+        return redirect(url_for('home_page'))  # redirect others back home
+    seller_email = session['email']  # get seller's email from session
+    listings = get_listings_by_seller(seller_email)  # fetch listings from DB
+    return render_template('seller_listings.html', listings=listings)  # render template with data
 
 
-@app.route('/seller/listings/new', methods=['GET', 'POST'])
+# Route to create a new listing for the logged-in seller
+@app.route('/seller/listings/new', methods=['GET','POST'])
 def new_listing():
-    # only seller can add new listing
+    # only sellers may add new listings
     if session.get('role') != 'seller':
         return redirect(url_for('home_page'))
     if request.method == 'POST':
-        data = request.form
+        data = request.form  # get form data
+        # call helper to insert listing into DB
         success = insert_product_listing(
             session['email'],
             data['category'], data['product_title'], data['product_name'],
             data['product_description'], int(data['quantity']), float(data['product_price'])
         )
+        # show flash message on success or failure
         flash("Listing created" if success else "Error creating listing",
               "success" if success else "danger")
-        return redirect(url_for('manage_listings'))
+        return redirect(url_for('manage_listings'))  # back to listings view
+    # GET request: show form with category options
     top_categories = get_subcategories('All')
     return render_template('seller_new_listing.html', categories=top_categories)
 
 
-@app.route('/seller/listings/edit/<int:listing_id>', methods=['GET', 'POST'])
+# Route to edit an existing listing identified by listing_id
+@app.route('/seller/listings/edit/<int:listing_id>', methods=['GET','POST'])
 def edit_listing(listing_id):
-    # only seller can edit their listings
+    # restrict to sellers
     if session.get('role') != 'seller':
         return redirect(url_for('home_page'))
     email = session['email']
     if request.method == 'POST':
-        data = request.form
+        data = request.form  # form data for updates
+        # update listing in DB
         success = update_product_listing(
             email, listing_id,
             data['category'], data['product_title'], data['product_name'],
@@ -193,74 +196,75 @@ def edit_listing(listing_id):
         flash("Listing updated" if success else "Error updating listing",
               "success" if success else "danger")
         return redirect(url_for('manage_listings'))
-    # GET: prefill form with existing data
-    listing = next((l for l in get_listings_by_seller(email) if l[0] == listing_id), None)
+    # GET: load existing listing to prefill form
+    all_listings = get_listings_by_seller(email)
+    # find matching listing tuple by ID
+    listing = next((l for l in all_listings if l[0] == listing_id), None)
     return render_template('seller_edit_listing.html', listing=listing)
 
 
+# Route to soft-delete (deactivate) a listing by setting its status to inactive (0)
 @app.route('/seller/listings/remove/<int:listing_id>')
 def remove_listing(listing_id):
-    # only seller can remove their listings
+    # only sellers allowed
     if session.get('role') != 'seller':
         return redirect(url_for('home_page'))
+    # update status to 0 (inactive)
     success = set_listing_status(session['email'], listing_id, 0)
     flash("Listing removed" if success else "Error removing listing",
           "warning" if success else "danger")
     return redirect(url_for('manage_listings'))
 
 
-# route to dynamically display category hierarchy and products
+# Route to display category hierarchy and list products under a category
 @app.route('/categories')
 def categories():
-    parent = request.args.get('parent', 'All')
+    parent = request.args.get('parent', 'All')  # current category (default 'All')
     if parent == "All":
-        subcategories = get_subcategories(parent)
-        products = []  # "All" does not have products directly
+        subcategories = get_subcategories(parent)  # fetch all top-level subcats
+        products = []  # no direct products under 'All'
     else:
-        subcategories = get_subcategories(parent)
-        products = get_products_by_category(parent)
+        subcategories = get_subcategories(parent)  # fetch subcategories of parent
+        products = get_products_by_category(parent)  # fetch products for this category
+    # render page with both lists
     return render_template('categories.html',
                            parent=parent,
                            subcategories=subcategories,
                            products=products)
 
 
-# route to display product details dynamically
-@app.route('/product/<seller_email>/<int:listing_id>')
-def product_detail(seller_email, listing_id):
-    product = get_product_details(seller_email, listing_id)
-    if product is None:
-        flash("product not found")
-        return redirect(url_for('categories') + '?parent=All')
-    return render_template('product_detail.html', product=product)
-
-
-@app.route('/order/<seller_email>/<int:listing_id>', methods=['GET', 'POST'])
+# Route to handle new orders (form and submission)
+@app.route('/order/<seller_email>/<int:listing_id>', methods=['GET','POST'])
 def order_form(seller_email, listing_id):
     buyer = session.get('email')
-    if session.get('role') != 'buyer' or not buyer:
+    # only buyers may place orders
+    if session.get('role')!='buyer' or not buyer:
         return redirect(url_for('home_page'))
+    # fetch product details or show error if not found
     prod = get_product_details(seller_email, listing_id)
     if not prod:
         flash("product not found", "danger")
         return redirect(url_for('categories'))
-    cards = get_credit_cards_by_buyer(buyer)
-    if request.method == 'POST':
-        qty = int(request.form['quantity'])
+    cards = get_credit_cards_by_buyer(buyer)  # fetch saved cards
+    if request.method=='POST':
+        qty = int(request.form['quantity'])  # requested quantity
         card_choice = request.form.get('card_choice')
-        if card_choice == 'new':
+        if card_choice=='new':  # adding a new card
             cc = request.form['cc_num']
             ctype = request.form['cc_type']
             em = int(request.form['cc_month'])
             ey = int(request.form['cc_year'])
             sc = request.form['cc_cvc']
-            add_credit_card(cc, ctype, em, ey, sc, buyer)
+            add_credit_card(cc, ctype, em, ey, sc, buyer)  # save new card
             chosen = cc
         else:
-            chosen = card_choice
+            chosen = card_choice  # use existing card
+        # attempt to insert order and update inventory
         success = insert_order(seller_email, listing_id, buyer, qty, chosen)
-        flash("order placed successfully" if success else "order failed", "success" if success else "danger")
+        flash("order placed successfully" if success else "order failed",
+              "success" if success else "danger")
         return redirect(url_for('orders'))
+    # GET: show order form
     return render_template(
         'order_form.html',
         product=prod,
@@ -268,30 +272,20 @@ def order_form(seller_email, listing_id):
     )
 
 
-@app.route('/orders')
-def orders():
-    buyer = session.get('email')
-    if session.get('role') != 'buyer' or not buyer:
-        return redirect(url_for('home_page'))
-    my_orders = get_orders_by_buyer(buyer)
-    return render_template('orders.html', orders=my_orders)
-
-
-@app.route('/checkout/<seller_email>/<int:listing_id>', methods=['GET', 'POST'])
+# Alternative checkout route, consolidating order and payment details
+@app.route('/checkout/<seller_email>/<int:listing_id>', methods=['GET','POST'])
 def checkout(seller_email, listing_id):
-    # ensure buyer is logged in
+    # ensure only buyers
     if session.get('role') != 'buyer':
         return redirect(url_for('home_page'))
 
-    product = get_product_details(seller_email, listing_id)
-    cards = get_credit_cards_by_buyer(session['email'])
+    product = get_product_details(seller_email, listing_id)  # fetch product
+    cards = get_credit_cards_by_buyer(session['email'])  # fetch buyer's cards
 
     if request.method == 'POST':
-        qty = int(request.form['quantity'])
-        cc = request.form['credit_card_num']
-
-        # pass args in the correct order:
-        # seller_email, listing_id, buyer_email, quantity, credit_card_num
+        qty = int(request.form['quantity'])  # get quantity
+        cc  = request.form['credit_card_num']  # selected card
+        # call insert_order with correct param order
         success = insert_order(
             seller_email,
             listing_id,
@@ -299,17 +293,83 @@ def checkout(seller_email, listing_id):
             qty,
             cc
         )
-
         if success:
             flash("Order placed successfully!", "success")
             return redirect(url_for('orders'))
         else:
             flash("Error placing order", "danger")
-
-    # GET: render the checkout form
+    # GET: render checkout page
     return render_template('checkout.html',
                            product=product,
                            cards=cards)
+
+
+# Route to show product details, including seller's average rating
+@app.route('/product/<seller_email>/<int:listing_id>')
+def product_detail(seller_email, listing_id):
+    product = get_product_details(seller_email, listing_id)  # fetch details
+    if product is None:
+        flash("product not found")
+        return redirect(url_for('categories') + '?parent=All')
+    avg_rating = get_seller_average_rating(seller_email)  # compute avg review score
+    return render_template(
+        'product_detail.html',
+        product=product,
+        avg_rating=avg_rating
+    )
+
+
+# Route for buyers to submit reviews on their orders
+@app.route('/review/<int:order_id>', methods=['GET','POST'])
+def review(order_id):
+    # only buyers may review
+    if session.get('role') != 'buyer':
+        return redirect(url_for('home_page'))
+
+    buyer = session['email']
+    # get all orders for this buyer
+    my_orders = get_orders_by_buyer(buyer)
+    # find matching order tuple
+    order = next((o for o in my_orders if o[0] == order_id), None)
+    if not order:
+        flash("order not found", "danger")
+        return redirect(url_for('orders'))
+
+    # extract seller and listing to label the product
+    seller_email, listing_id = order[2], order[3]
+    product = get_product_details(seller_email, listing_id)
+    product_label = f"{product[3]} – {product[4]}"  # "title – name"
+
+    if request.method == 'POST':
+        rating = int(request.form['rating'])  # get rating value
+        review_desc = request.form['review_desc']  # review text
+        success = insert_review(order_id, review_desc, rating)  # upsert review
+        flash("Review submitted!" if success else "Error submitting review",
+              "success" if success else "danger")
+        return redirect(url_for('orders'))
+
+    # GET: show review form
+    return render_template('review_form.html',
+                           order_id=order_id,
+                           product_label=product_label)
+
+
+# Route to display past orders with seller ratings included
+@app.route('/orders')
+def orders():
+    buyer = session.get('email')
+    # restrict to buyers
+    if session.get('role') != 'buyer' or not buyer:
+        return redirect(url_for('home_page'))
+
+    raw_orders = get_orders_by_buyer(buyer)  # fetch orders
+    orders_with_rating = []
+    # append average seller rating to each order tuple
+    for order in raw_orders:
+        seller_email = order[2]
+        avg = get_seller_average_rating(seller_email)
+        orders_with_rating.append((*order, avg))
+    return render_template('orders.html', orders=orders_with_rating)  # render orders page
 
 
 # main driver to run flask app
