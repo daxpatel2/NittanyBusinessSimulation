@@ -1,20 +1,13 @@
 # app.py
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from datetime import datetime
-from database_queries import (
-    fetch_user_data, get_user_role,
-    get_subcategories, get_products_by_category, get_product_details,
-    get_listings_by_seller, insert_product_listing,
-    update_product_listing, set_listing_status,
-    get_orders_by_buyer, get_credit_cards_by_buyer,
-    insert_order, add_credit_card, insert_review,
-    get_seller_average_rating
-)
+from database_queries import *
 
 # create flask app instance
 app = Flask(__name__)
+app.secret_key = "your_secret_key_here"  # needed for session management and flashing
 
-# route for home page login
+
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
     # message variable to store error or success messages for login
@@ -59,11 +52,71 @@ def home_page():
     # render login page template with message variable
     return render_template('mainpage.html', message=message)
 
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    message = None
+
+    # Only run this logic on POST
+    if request.method == 'POST':
+        username         = request.form['username']
+        email            = request.form['email']
+        password         = request.form['password']
+        confirm_password = request.form['confirm_password']
+        role             = request.form['role']
+
+        # 1) password check
+        if password != confirm_password:
+            message = "Passwords do not match. Please try again."
+
+        else:
+            # 2) try to add new user
+            created = add_user_to_database(email, password)
+            if not created:
+                message = f"An account with {email} already exists."
+            else:
+                # 3) success → set up session & redirect
+                session['email'] = email
+                session['role']  = role
+
+                # If you need to populate buyer/seller/helpdesk tables:
+                conn, cursor = connect()
+                if role == 'buyer':
+                    cursor.execute(
+                        "INSERT INTO buyer(email) VALUES (%s) ON CONFLICT DO NOTHING",
+                        (email,)
+                    )
+                elif role == 'seller':
+                    cursor.execute(
+                        "INSERT INTO sellers(email) VALUES (%s) ON CONFLICT DO NOTHING",
+                        (email,)
+                    )
+                else:  # helpdesk
+                    cursor.execute(
+                        "INSERT INTO helpdesk(email) VALUES (%s) ON CONFLICT DO NOTHING",
+                        (email,)
+                    )
+                conn.commit()
+                cursor.close()
+                conn.close()
+
+                # redirect to the correct dashboard
+                if role == "buyer":
+                    return redirect(url_for('buyer'))
+                elif role == "seller":
+                    return redirect(url_for('seller'))
+                else:
+                    return redirect(url_for('helpdesk'))
+
+    # GET or POST-with-error: render the form and show any message
+    return render_template('register.html', message=message)
+
 # simple logout route
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('home_page'))
+
 
 # route for buyer dashboard
 @app.route('/buyer')
@@ -74,6 +127,7 @@ def buyer():
     # render buyer dashboard template with email variable
     return render_template('buyers.html', email=session['email'])
 
+
 # route for seller dashboard
 @app.route('/seller')
 def seller():
@@ -82,6 +136,7 @@ def seller():
         return redirect(url_for('home_page'))
     # render seller dashboard template with email variable
     return render_template('sellers.html', email=session['email'])
+
 
 # route for helpdesk dashboard
 @app.route('/helpdesk')
@@ -92,50 +147,44 @@ def helpdesk():
     # render helpdesk dashboard template with email variable
     return render_template('helpdesk_staff.html', email=session['email'])
 
-# Route for sellers to view and manage their own listings
+
 @app.route('/seller/listings')
 def manage_listings():
-    # ensure only a seller can access this page
+    # only seller can manage their listings
     if session.get('role') != 'seller':
-        return redirect(url_for('home_page'))  # redirect others back home
-    seller_email = session['email']  # get seller's email from session
-    listings = get_listings_by_seller(seller_email)  # fetch listings from DB
-    return render_template('seller_listings.html', listings=listings)  # render template with data
+        return redirect(url_for('home_page'))
+    seller_email = session['email']
+    listings = get_listings_by_seller(seller_email)
+    return render_template('seller_listings.html', listings=listings)
 
 
-# Route to create a new listing for the logged-in seller
-@app.route('/seller/listings/new', methods=['GET','POST'])
+@app.route('/seller/listings/new', methods=['GET', 'POST'])
 def new_listing():
-    # only sellers may add new listings
+    # only seller can add new listing
     if session.get('role') != 'seller':
         return redirect(url_for('home_page'))
     if request.method == 'POST':
-        data = request.form  # get form data
-        # call helper to insert listing into DB
+        data = request.form
         success = insert_product_listing(
             session['email'],
             data['category'], data['product_title'], data['product_name'],
             data['product_description'], int(data['quantity']), float(data['product_price'])
         )
-        # show flash message on success or failure
         flash("Listing created" if success else "Error creating listing",
               "success" if success else "danger")
-        return redirect(url_for('manage_listings'))  # back to listings view
-    # GET request: show form with category options
+        return redirect(url_for('manage_listings'))
     top_categories = get_subcategories('All')
     return render_template('seller_new_listing.html', categories=top_categories)
 
 
-# Route to edit an existing listing identified by listing_id
-@app.route('/seller/listings/edit/<int:listing_id>', methods=['GET','POST'])
+@app.route('/seller/listings/edit/<int:listing_id>', methods=['GET', 'POST'])
 def edit_listing(listing_id):
-    # restrict to sellers
+    # only seller can edit their listings
     if session.get('role') != 'seller':
         return redirect(url_for('home_page'))
     email = session['email']
     if request.method == 'POST':
-        data = request.form  # form data for updates
-        # update listing in DB
+        data = request.form
         success = update_product_listing(
             email, listing_id,
             data['category'], data['product_title'], data['product_name'],
@@ -144,75 +193,74 @@ def edit_listing(listing_id):
         flash("Listing updated" if success else "Error updating listing",
               "success" if success else "danger")
         return redirect(url_for('manage_listings'))
-    # GET: load existing listing to prefill form
-    all_listings = get_listings_by_seller(email)
-    # find matching listing tuple by ID
-    listing = next((l for l in all_listings if l[0] == listing_id), None)
+    # GET: prefill form with existing data
+    listing = next((l for l in get_listings_by_seller(email) if l[0] == listing_id), None)
     return render_template('seller_edit_listing.html', listing=listing)
 
 
-# Route to soft-delete (deactivate) a listing by setting its status to inactive (0)
 @app.route('/seller/listings/remove/<int:listing_id>')
 def remove_listing(listing_id):
-    # only sellers allowed
+    # only seller can remove their listings
     if session.get('role') != 'seller':
         return redirect(url_for('home_page'))
-    # update status to 0 (inactive)
     success = set_listing_status(session['email'], listing_id, 0)
     flash("Listing removed" if success else "Error removing listing",
           "warning" if success else "danger")
     return redirect(url_for('manage_listings'))
 
 
-# Route to display category hierarchy and list products under a category
+# route to dynamically display category hierarchy and products
 @app.route('/categories')
 def categories():
-    parent = request.args.get('parent', 'All')  # current category (default 'All')
+    parent = request.args.get('parent', 'All')
     if parent == "All":
-        subcategories = get_subcategories(parent)  # fetch all top-level subcats
-        products = []  # no direct products under 'All'
+        subcategories = get_subcategories(parent)
+        products = []  # "All" does not have products directly
     else:
-        subcategories = get_subcategories(parent)  # fetch subcategories of parent
-        products = get_products_by_category(parent)  # fetch products for this category
-    # render page with both lists
+        subcategories = get_subcategories(parent)
+        products = get_products_by_category(parent)
     return render_template('categories.html',
                            parent=parent,
                            subcategories=subcategories,
                            products=products)
 
 
-# Route to handle new orders (form and submission)
-@app.route('/order/<seller_email>/<int:listing_id>', methods=['GET','POST'])
+# route to display product details dynamically
+@app.route('/product/<seller_email>/<int:listing_id>')
+def product_detail(seller_email, listing_id):
+    product = get_product_details(seller_email, listing_id)
+    if product is None:
+        flash("product not found")
+        return redirect(url_for('categories') + '?parent=All')
+    return render_template('product_detail.html', product=product)
+
+
+@app.route('/order/<seller_email>/<int:listing_id>', methods=['GET', 'POST'])
 def order_form(seller_email, listing_id):
     buyer = session.get('email')
-    # only buyers may place orders
-    if session.get('role')!='buyer' or not buyer:
+    if session.get('role') != 'buyer' or not buyer:
         return redirect(url_for('home_page'))
-    # fetch product details or show error if not found
     prod = get_product_details(seller_email, listing_id)
     if not prod:
         flash("product not found", "danger")
         return redirect(url_for('categories'))
-    cards = get_credit_cards_by_buyer(buyer)  # fetch saved cards
-    if request.method=='POST':
-        qty = int(request.form['quantity'])  # requested quantity
+    cards = get_credit_cards_by_buyer(buyer)
+    if request.method == 'POST':
+        qty = int(request.form['quantity'])
         card_choice = request.form.get('card_choice')
-        if card_choice=='new':  # adding a new card
+        if card_choice == 'new':
             cc = request.form['cc_num']
             ctype = request.form['cc_type']
             em = int(request.form['cc_month'])
             ey = int(request.form['cc_year'])
             sc = request.form['cc_cvc']
-            add_credit_card(cc, ctype, em, ey, sc, buyer)  # save new card
+            add_credit_card(cc, ctype, em, ey, sc, buyer)
             chosen = cc
         else:
-            chosen = card_choice  # use existing card
-        # attempt to insert order and update inventory
+            chosen = card_choice
         success = insert_order(seller_email, listing_id, buyer, qty, chosen)
-        flash("order placed successfully" if success else "order failed",
-              "success" if success else "danger")
+        flash("order placed successfully" if success else "order failed", "success" if success else "danger")
         return redirect(url_for('orders'))
-    # GET: show order form
     return render_template(
         'order_form.html',
         product=prod,
@@ -220,20 +268,30 @@ def order_form(seller_email, listing_id):
     )
 
 
-# Alternative checkout route, consolidating order and payment details
-@app.route('/checkout/<seller_email>/<int:listing_id>', methods=['GET','POST'])
+@app.route('/orders')
+def orders():
+    buyer = session.get('email')
+    if session.get('role') != 'buyer' or not buyer:
+        return redirect(url_for('home_page'))
+    my_orders = get_orders_by_buyer(buyer)
+    return render_template('orders.html', orders=my_orders)
+
+
+@app.route('/checkout/<seller_email>/<int:listing_id>', methods=['GET', 'POST'])
 def checkout(seller_email, listing_id):
-    # ensure only buyers
+    # ensure buyer is logged in
     if session.get('role') != 'buyer':
         return redirect(url_for('home_page'))
 
-    product = get_product_details(seller_email, listing_id)  # fetch product
-    cards = get_credit_cards_by_buyer(session['email'])  # fetch buyer's cards
+    product = get_product_details(seller_email, listing_id)
+    cards = get_credit_cards_by_buyer(session['email'])
 
     if request.method == 'POST':
-        qty = int(request.form['quantity'])  # get quantity
-        cc  = request.form['credit_card_num']  # selected card
-        # call insert_order with correct param order
+        qty = int(request.form['quantity'])
+        cc = request.form['credit_card_num']
+
+        # pass args in the correct order:
+        # seller_email, listing_id, buyer_email, quantity, credit_card_num
         success = insert_order(
             seller_email,
             listing_id,
@@ -241,83 +299,18 @@ def checkout(seller_email, listing_id):
             qty,
             cc
         )
+
         if success:
             flash("Order placed successfully!", "success")
             return redirect(url_for('orders'))
         else:
             flash("Error placing order", "danger")
-    # GET: render checkout page
+
+    # GET: render the checkout form
     return render_template('checkout.html',
                            product=product,
                            cards=cards)
 
-
-# Route to show product details, including seller's average rating
-@app.route('/product/<seller_email>/<int:listing_id>')
-def product_detail(seller_email, listing_id):
-    product = get_product_details(seller_email, listing_id)  # fetch details
-    if product is None:
-        flash("product not found")
-        return redirect(url_for('categories') + '?parent=All')
-    avg_rating = get_seller_average_rating(seller_email)  # compute avg review score
-    return render_template(
-        'product_detail.html',
-        product=product,
-        avg_rating=avg_rating
-    )
-
-
-# Route for buyers to submit reviews on their orders
-@app.route('/review/<int:order_id>', methods=['GET','POST'])
-def review(order_id):
-    # only buyers may review
-    if session.get('role') != 'buyer':
-        return redirect(url_for('home_page'))
-
-    buyer = session['email']
-    # get all orders for this buyer
-    my_orders = get_orders_by_buyer(buyer)
-    # find matching order tuple
-    order = next((o for o in my_orders if o[0] == order_id), None)
-    if not order:
-        flash("order not found", "danger")
-        return redirect(url_for('orders'))
-
-    # extract seller and listing to label the product
-    seller_email, listing_id = order[2], order[3]
-    product = get_product_details(seller_email, listing_id)
-    product_label = f"{product[3]} – {product[4]}"  # "title – name"
-
-    if request.method == 'POST':
-        rating = int(request.form['rating'])  # get rating value
-        review_desc = request.form['review_desc']  # review text
-        success = insert_review(order_id, review_desc, rating)  # upsert review
-        flash("Review submitted!" if success else "Error submitting review",
-              "success" if success else "danger")
-        return redirect(url_for('orders'))
-
-    # GET: show review form
-    return render_template('review_form.html',
-                           order_id=order_id,
-                           product_label=product_label)
-
-
-# Route to display past orders with seller ratings included
-@app.route('/orders')
-def orders():
-    buyer = session.get('email')
-    # restrict to buyers
-    if session.get('role') != 'buyer' or not buyer:
-        return redirect(url_for('home_page'))
-
-    raw_orders = get_orders_by_buyer(buyer)  # fetch orders
-    orders_with_rating = []
-    # append average seller rating to each order tuple
-    for order in raw_orders:
-        seller_email = order[2]
-        avg = get_seller_average_rating(seller_email)
-        orders_with_rating.append((*order, avg))
-    return render_template('orders.html', orders=orders_with_rating)  # render orders page
 
 # main driver to run flask app
 if __name__ == '__main__':

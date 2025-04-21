@@ -474,6 +474,43 @@ def fetch_user_data(email: str, password: str) -> Optional[bool]:
 
     return True
 
+def add_user_to_database(email: str, password: str):
+    conn, cursor = connect()
+    if conn is None or cursor is None:
+        print("Connection failed, could not add user.")
+        return False
+
+    # hash the incoming password
+    hashed = hash_password(password)
+
+    # try to insert; do nothing if the email already exists
+    insert_sql = """
+        INSERT INTO users (email, password)
+        VALUES (%s, %s)
+        ON CONFLICT (email) DO NOTHING
+    """
+    try:
+        cursor.execute(insert_sql, (email, hashed))
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            # no row was inserted → user already exists
+            print(f"User with email {email!r} already exists. Please log in instead")
+            return False
+
+        print(f"New user {email!r} added successfully.")
+        return True
+
+    except Exception as e:
+        print("Error adding new user:", e)
+        conn.rollback()
+        return False
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
 # this function returns the role of a user based on their email by checking the helpdesk, buyer, and sellers tables in order
 def get_user_role(email: str) -> str:
     conn, cursor = connect()
@@ -898,6 +935,7 @@ def get_seller_average_rating(seller_email: str) -> Optional[float]:
     cursor.close()  # close cursor
     conn.close()  # close connection
     return float(result) if result is not None else None  # return average or None
+
 
 
 if __name__ == '__main__':
