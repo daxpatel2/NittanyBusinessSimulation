@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>My Orders</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+      .order-table { margin-top: 30px; }
+      .order-table th, .order-table td { text-align: center; }
+      .btn-back { margin-top: 20px; }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1>my orders</h1>
+
+      {% if orders %}
+        <div class="table-responsive order-table">
+          <table class="table table-bordered">
+            <thead class="thead-light">
+              <tr>
+                <th>order id</th>
+                <th>date</th>
+                <th>product</th>
+                <th>quantity</th>
+                <th>total paid</th>
+                <th>actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for order in orders %}
+                <tr>
+                  <td>{{ order[0] }}</td>
+                  <td>{{ order[1] }}</td>
+                  <td>
+                    <a href="{{ url_for('product_detail',
+                                         seller_email=order[2],
+                                         listing_id=order[3]) }}">
+                      view product
+                    </a>
+                  </td>
+                  <td>{{ order[4] }}</td>
+                  <td>${{ order[5] }}</td>
+                  <td>
+                    <a href="{{ url_for('checkout',
+                                         seller_email=order[2],
+                                         listing_id=order[3]) }}"
+                       class="btn btn-sm btn-primary">
+                      reorder
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>you have no past orders.</p>
+      {% endif %}
+
+      <a href="{{ url_for('buyer') }}" class="btn btn-secondary btn-back">
+        back to dashboard
+      </a>
+    </div>
+  </body>
+</html>

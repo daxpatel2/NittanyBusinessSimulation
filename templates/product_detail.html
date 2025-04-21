@@ -1,46 +1,45 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <title>Product Detail</title>
+    <meta charset="utf-8">
+    <title>product detail</title>
     <style>
       body {
         font-family: Arial, sans-serif;
         background: #f2f2f2;
         margin: 0;
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
+        padding: 0;
       }
-      .dashboard-container {
+      .container {
+        max-width: 800px;
+        margin: 40px auto;
         background: #fff;
         padding: 20px;
         border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        width: 500px;
-        margin-top: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       }
-      .dashboard-container h2 {
-        margin-bottom: 20px;
+      .card-header {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
       }
-      .product-card {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 15px;
-        margin-bottom: 20px;
+      .card-body p {
+        margin: .5rem 0;
       }
-      .product-card h3 {
-        margin-top: 0;
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        margin: 10px 5px 0 0;
+        text-decoration: none;
+        background: #007bff;
+        color: #fff;
+        border-radius: 3px;
+        transition: background .3s;
       }
       .btn-secondary {
         background: #6c757d;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 3px;
-        color: #fff;
-        text-decoration: none;
-        display: inline-block;
+      }
+      .btn:hover {
+        background: #0056b3;
       }
       .btn-secondary:hover {
         background: #5a6268;
@@ -48,23 +47,33 @@
     </style>
   </head>
   <body>
-    <div class="dashboard-container">
-      <h2>Product Detail</h2>
-      {% if product %}
-        <div class="product-card">
-          <h3>{{ product[3] }}</h3>
-          <p><strong>Name:</strong> {{ product[4] }}</p>
-          <p><strong>Description:</strong> {{ product[5] }}</p>
-          <p><strong>Price:</strong> ${{ product[7] }}</p>
-          <p><strong>Available Quantity:</strong> {{ product[6] }}</p>
-          <p><strong>Status:</strong> {{ product[8] }}</p>
-          <p><strong>Category:</strong> {{ product[2] }}</p>
-          <p><strong>Seller Email:</strong> {{ product[0] }}</p>
-        </div>
-      {% else %}
-        <p>Product not found.</p>
-      {% endif %}
-      <a href="{{ url_for('categories') }}?parent=All" class="btn-secondary">Back to Categories</a>
+    <div class="container">
+      <div class="card-header">
+        product: {{ product[3] }}
+      </div>
+      <div class="card-body">
+        <h5>{{ product[4] }}</h5>
+        <p>{{ product[5] }}</p>
+        <p><strong>price:</strong> ${{ product[7] }}</p>
+        <p><strong>available quantity:</strong> {{ product[6] }}</p>
+        <p><strong>status:</strong>
+          {% if product[8] == 1 %}active
+          {% elif product[8] == 0 %}inactive
+          {% else %}sold{% endif %}
+        </p>
+        <p><strong>category:</strong> {{ product[2] }}</p>
+        <p><strong>seller email:</strong> {{ product[0] }}</p>
+
+        <!-- buy now button -->
+        <a href="{{ url_for('checkout',
+                             seller_email=product[0],
+                             listing_id=product[1]) }}"
+           class="btn">Buy Now</a>
+
+        <!-- back to categories -->
+        <a href="{{ url_for('categories') }}?parent=All"
+           class="btn btn-secondary">Back to root</a>
+      </div>
     </div>
   </body>
 </html>

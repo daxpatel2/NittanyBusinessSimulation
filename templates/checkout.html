@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>checkout</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .checkout-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      width: 400px;
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    .field {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .secondary {
+      background: #aaa;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="checkout-container">
+    <h2>Confirm Purchase</h2>
+
+    <form method="post"
+          action="{{ url_for('checkout', seller_email=product[0], listing_id=product[1]) }}">
+      <!-- show product summary -->
+      <div class="field">
+        <strong>Product:</strong> {{ product[3] }} – {{ product[4] }}
+      </div>
+      <div class="field">
+        <strong>Unit Price:</strong> ${{ product[7] }}
+      </div>
+      <div class="field">
+        <strong>Available:</strong> {{ product[6] }}
+      </div>
+
+      <!-- quantity selector -->
+      <div class="field">
+        <label for="quantity">Quantity to buy:</label>
+        <input type="number"
+               id="quantity"
+               name="quantity"
+               min="1"
+               max="{{ product[6] }}"
+               required>
+      </div>
+
+      <!-- saved cards dropdown -->
+      <div class="field">
+        <label for="card_choice">Payment method:</label>
+        <select name="credit_card_num" id="card_choice" required>
+          {% if cards %}
+            {% for num, ctype, mo, yr in cards %}
+              <option value="{{ num }}">
+                {{ ctype }} ending {{ num[-4:] }} (exp {{ mo }}/{{ yr }})
+              </option>
+            {% endfor %}
+            <option value="new">Use a new card</option>
+          {% else %}
+            <option value="new">No saved cards – enter a new one</option>
+          {% endif %}
+        </select>
+      </div>
+
+      <!-- new card fields, hidden by default -->
+      <div id="new_card_fields" style="display:none;">
+        <div class="field">
+          <label for="cc_num">Card Number</label>
+          <input type="text" id="cc_num" name="cc_num" pattern="\d{13,19}">
+        </div>
+        <div class="field">
+          <label for="cc_type">Card Type</label>
+          <input type="text" id="cc_type" name="cc_type">
+        </div>
+        <div class="field">
+          <label for="cc_month">Expiry Month</label>
+          <input type="number" id="cc_month" name="cc_month" min="1" max="12">
+        </div>
+        <div class="field">
+          <label for="cc_year">Expiry Year</label>
+          <input type="number" id="cc_year" name="cc_year" min="2025" max="2100">
+        </div>
+        <div class="field">
+          <label for="cc_cvc">CVC</label>
+          <input type="text" id="cc_cvc" name="cc_cvc" pattern="\d{3,4}">
+        </div>
+      </div>
+
+      <!-- submit -->
+      <button type="submit">Confirm Purchase</button>
+      <button type="button"
+              class="secondary"
+              onclick="window.location='{{ url_for('product_detail', seller_email=product[0], listing_id=product[1]) }}'">
+        Cancel
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // show/hide the new-card fields when “Use a new card” is chosen
+    const choice = document.getElementById('card_choice');
+    const newFields = document.getElementById('new_card_fields');
+    choice.addEventListener('change', () => {
+      newFields.style.display = (choice.value === 'new') ? 'block' : 'none';
+    });
+  </script>
+</body>
+</html>

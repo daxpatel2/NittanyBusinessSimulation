@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>New Listing</title>
+    <style>
+      body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 40px; }
+      .form-container { background: #fff; padding: 20px; border-radius: 5px; max-width: 500px; margin: auto; }
+      .form-container h1 { margin-bottom: 20px; }
+      .form-container label { display: block; margin-top: 10px; font-weight: bold; }
+      .form-container input, .form-container select, .form-container textarea {
+        width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 3px;
+      }
+      .form-container button { margin-top: 20px; padding: 10px 15px; background: #007bff; color: #fff; border: none; border-radius: 3px; cursor: pointer; }
+      .form-container button:hover { background: #0056b3; }
+      .back-link { display: block; margin-top: 15px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+      <h1>Publish New Listing</h1>
+      <form method="post">
+        <label for="category">Category</label>
+        <select name="category" id="category" required>
+          {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+
+        <label for="product_title">Product Title</label>
+        <input type="text" name="product_title" id="product_title" required>
+
+        <label for="product_name">Product Name</label>
+        <input type="text" name="product_name" id="product_name" required>
+
+        <label for="product_description">Description</label>
+        <textarea name="product_description" id="product_description" rows="4" required></textarea>
+
+        <label for="quantity">Quantity</label>
+        <input type="number" name="quantity" id="quantity" min="1" required>
+
+        <label for="product_price">Price</label>
+        <input type="number" name="product_price" id="product_price" step="0.01" required>
+
+        <button type="submit">Create Listing</button>
+      </form>
+
+      <a class="back-link" href="{{ url_for('manage_listings') }}">← Back to my listings</a>
+    </div>
+  </body>
+</html>

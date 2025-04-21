@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <title>Seller Dashboard</title>
   <style>
     body {
@@ -14,7 +14,6 @@
       align-items: center;
       height: 100vh;
     }
-
     .dashboard-container {
       background: #fff;
       padding: 20px;
@@ -23,19 +22,16 @@
       width: 350px;
       text-align: center;
     }
-
     .dashboard-container h2 {
       margin-bottom: 10px;
     }
-
     .dashboard-container p {
       margin-bottom: 20px;
       color: #555;
     }
-
     .dashboard-container a {
       display: block;
-      background: #28a745;
+      background: #007bff;
       color: #fff;
       padding: 10px;
       margin-bottom: 10px;
@@ -43,9 +39,8 @@
       text-decoration: none;
       transition: background 0.3s ease;
     }
-
     .dashboard-container a:hover {
-      background: #1e7e34;
+      background: #0056b3;
     }
   </style>
 </head>
@@ -54,10 +49,10 @@
     <h2>Welcome, Seller!</h2>
     <p>Logged in as: {{ email }}</p>
 
-    <a href="#">My Products</a>
-    <a href="#">Add Product</a>
-    <a href="#">View Feedback</a>
-    <a href="/">Logout</a>
+    <a href="{{ url_for('manage_listings') }}">Manage Listings</a>
+    <a href="{{ url_for('new_listing') }}">Add New Listing</a>
+    <a href="{{ url_for('categories') }}?parent=All">Browse Categories</a>
+    <a href="/">logout</a>
   </div>
 </body>
 </html>

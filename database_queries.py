@@ -561,6 +561,256 @@ def get_product_details(seller_email: str, listing_id: int) -> tuple:
     conn.close()
     # return the product details tuple (or None if not found)
     return result
+# fetches all listings for a given seller
+def get_listings_by_seller(seller_email: str) -> list:
+    conn, cursor = connect()
+    if not conn:
+        return []
+    query = """
+        SELECT listing_id, category, product_title, product_name, product_description,
+               quantity, product_price, status
+          FROM product_listings
+         WHERE seller_email = %s
+         ORDER BY listing_id
+    """
+    cursor.execute(query, (seller_email,))
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
+
+# inserts a new product listing for the given seller
+def insert_product_listing(
+    seller_email: str,
+    category: str,
+    product_title: str,
+    product_name: str,
+    product_description: str,
+    quantity: int,
+    product_price: float
+) -> bool:
+    conn, cursor = connect()
+    if not conn:
+        return False
+    # determine next listing_id
+    cursor.execute(
+        "SELECT COALESCE(MAX(listing_id), 0) FROM product_listings WHERE seller_email = %s",
+        (seller_email,)
+    )
+    next_id = cursor.fetchone()[0] + 1
+    status = 1  # active by default
+    insert_sql = """
+        INSERT INTO product_listings
+            (seller_email, listing_id, category, product_title, product_name,
+             product_description, quantity, product_price, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    try:
+        cursor.execute(insert_sql, (
+            seller_email, next_id,
+            category, product_title, product_name,
+            product_description, quantity, product_price,
+            status
+        ))
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        conn.close()
+
+# updates an existing product listing
+def update_product_listing(
+    seller_email: str,
+    listing_id: int,
+    category: str,
+    product_title: str,
+    product_name: str,
+    product_description: str,
+    quantity: int,
+    product_price: float
+) -> bool:
+    conn, cursor = connect()
+    if not conn:
+        return False
+    # automatically mark sold if quantity == 0
+    status = 2 if quantity == 0 else 1
+    update_sql = """
+        UPDATE product_listings
+           SET category = %s,
+               product_title = %s,
+               product_name = %s,
+               product_description = %s,
+               quantity = %s,
+               product_price = %s,
+               status = %s
+         WHERE seller_email = %s
+           AND listing_id    = %s
+    """
+    try:
+        cursor.execute(update_sql, (
+            category, product_title, product_name,
+            product_description, quantity, product_price,
+            status, seller_email, listing_id
+        ))
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        conn.close()
+
+# soft‑deletes a listing by setting its status to 0 (inactive)
+def set_listing_status(seller_email: str, listing_id: int, status: int) -> bool:
+    conn, cursor = connect()
+    if not conn:
+        return False
+    update_sql = """
+        UPDATE product_listings
+           SET status = %s
+         WHERE seller_email = %s
+           AND listing_id    = %s
+    """
+    try:
+        cursor.execute(update_sql, (status, seller_email, listing_id))
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        conn.close()
+def get_credit_cards_by_buyer(buyer_email: str) -> list:
+    """return list of (credit_card_num, card_type, expire_month, expire_year)"""
+    conn, cursor = connect()
+    if not conn:
+        return []
+    cursor.execute("""
+        SELECT credit_card_num, card_type, expire_month, expire_year
+          FROM credit_cards
+         WHERE owner_email = %s
+    """, (buyer_email,))
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
+
+def add_credit_card(credit_card_num: str, card_type: str,
+                    expire_month: int, expire_year: int,
+                    security_code: str, buyer_email: str) -> bool:
+    """insert a new credit card for buyer"""
+    conn, cursor = connect()
+    if not conn:
+        return False
+    try:
+        cursor.execute("""
+            INSERT INTO credit_cards
+              (credit_card_num, card_type, expire_month, expire_year, security_code, owner_email)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT DO NOTHING
+        """, (credit_card_num, card_type, expire_month, expire_year, security_code, buyer_email))
+        conn.commit()
+        return True
+    except:
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        conn.close()
+
+def insert_order(seller_email: str, listing_id: int,
+                 buyer_email: str, quantity: int,
+                 credit_card_num: str) -> bool:
+    """
+    insert a new order, update inventory, product status, and seller balance atomically
+    """
+    conn, cursor = connect()
+    if not cursor:
+        return False
+    try:
+        # 1) lock the product row
+        cursor.execute("""
+            SELECT product_price, quantity
+              FROM product_listings
+             WHERE seller_email=%s AND listing_id=%s
+             FOR UPDATE
+        """, (seller_email, listing_id))
+        row = cursor.fetchone()
+        if not row:
+            raise Exception("listing not found")
+        unit_price, avail = row
+
+        # 2) check inventory
+        if quantity > avail:
+            raise Exception("not enough inventory")
+        total = unit_price * quantity
+
+        # 2.5) generate a new order_id
+        cursor.execute("SELECT COALESCE(MAX(order_id), 0) FROM orders")
+        next_order_id = cursor.fetchone()[0] + 1
+
+        # 3) insert into orders with explicit order_id
+        cursor.execute("""
+            INSERT INTO orders
+              (order_id, seller_email, listing_id, buyer_email, date, quantity, payment)
+            VALUES (%s, %s, %s, %s, CURRENT_DATE, %s, %s)
+        """, (next_order_id,
+              seller_email, listing_id,
+              buyer_email, quantity, total))
+
+        # 4) update inventory and status
+        new_qty = avail - quantity
+        new_status = 2 if new_qty == 0 else 1
+        cursor.execute("""
+            UPDATE product_listings
+               SET quantity = %s,
+                   status   = %s
+             WHERE seller_email = %s
+               AND listing_id   = %s
+        """, (new_qty, new_status, seller_email, listing_id))
+
+        # 5) update seller balance
+        cursor.execute("""
+            UPDATE sellers
+               SET balance = balance + %s
+             WHERE email = %s
+        """, (total, seller_email))
+
+        conn.commit()
+        return True
+
+    except Exception as e:
+        print("order error:", e)
+        conn.rollback()
+        return False
+
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_orders_by_buyer(buyer_email: str) -> list:
+    """
+    return list of
+      (order_id, date, seller_email, listing_id, quantity, payment)
+    """
+    conn, cursor = connect()
+    if not conn:
+        return []
+    cursor.execute("""
+        SELECT order_id, date, seller_email, listing_id, quantity, payment
+          FROM orders
+         WHERE buyer_email = %s
+         ORDER BY date DESC
+    """, (buyer_email,))
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
 
 if __name__ == '__main__':
     create_tables()
