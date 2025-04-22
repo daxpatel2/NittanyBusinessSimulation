@@ -78,4 +78,9 @@ The webpage should be available at:
 http://127.0.0.1:5000/
 ```
 
+If you run into any issues:
+(1) Go back through the confirguration and usage steps.
+(2) Ensure no other service is using port 5000.
+(3) Make sure you are in the same directory as 'app.py'.
+
 ## END
