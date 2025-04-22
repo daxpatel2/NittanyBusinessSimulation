@@ -1,9 +1,10 @@
+# imports
 import hashlib
 from typing import Optional
 import pandas as pd
 import psycopg2
 
-
+#establish connection with database
 def connect():
     try:
         conn = psycopg2.connect(
@@ -15,13 +16,13 @@ def connect():
         )
         # Create a cursor and execute a simple test query
         cursor = conn.cursor()
-        print("Connected to the database successfully!")
+        print("Connected to the database successfully.")
         return conn, cursor
     except Exception as e:
         print("Error connecting to the database:", e)
         return None, None
 
-
+# create initial tables 
 def create_tables():
     conn, cursor = connect()
     if conn is None or cursor is None:
@@ -154,12 +155,12 @@ def create_tables():
     cursor.close()
     conn.close()
 
-
+# hash the password
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-# next part imports and reads the CSV file and hashes the password
+# imports and reads the CSV file and hashes the password
 def read_and_hash_password():
     users_df = pd.read_csv('Users.csv')
     print("CSV file read successfully.")
