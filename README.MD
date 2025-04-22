@@ -28,23 +28,26 @@ The system reads user data from a CSV file (`Users.csv`), hashes each password u
 
 
 ## Configuration
+Before running the applicaiton, ensure all steps below are completed.
 
-Before running the application, ensure you properly configure the database connection and CSV data:
+### Environment Setup
+Install the required Python packages by running:
+```bash pip install flask psycopg2-binary
 
+### Database Connection 
 Open the Python file containing the database connection logic (e.g., `database_queries.py`) and update the `connect()` function with your PostgreSQL credentials:
 
 Make sure PostgreSQL is running.
 
 The credentials (dbname, user, password, host, port) match your local or remote PostgreSQL server settings.
 
-CSV Data:
-Place the Users.csv file into the root directory of your project. Verify that:
+### CSV Data
+Make sure the Users.csv file is in the root directory of your project, if not, move it there. 
+Verify that:
 
-The CSV file contains at least two columns: email and password.
+(1) The CSV file contains at least two columns: email and password.
 
-The columns are correctly named exactly as email and password (case-sensitive).
-
-Thats it, thats all we need to do inorder to configure our project.
+(2) The columns are correctly named exactly as email and password (case-sensitive).
 
 ## Usage
 
