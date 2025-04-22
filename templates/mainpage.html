@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Login Page</title>
-  <style>
+  <style> /* set general style for webpage */
     body {
       font-family: Arial, sans-serif;
       background: #f2f2f2;
@@ -14,6 +14,7 @@
       align-items: center;
       height: 100vh;
     }
+    /* set general style for the login container */
     .login-container {
       background: #fff;
       padding: 20px;
@@ -21,14 +22,17 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       width: 300px;
     }
+    /* set style for login container headers */
     .login-container h2 {
       text-align: center;
       margin-bottom: 20px;
     }
+    /* set style for login cnotainer forms */
     .login-container form {
       display: flex;
       flex-direction: column;
     }
+    /* set style for login container inputs fields */
     .login-container input[type="email"],
     .login-container input[type="password"] {
       padding: 10px;
@@ -36,6 +40,7 @@
       border: 1px solid #ccc;
       border-radius: 3px;
     }
+    /* set style for login container buttons */
     .login-container button {
       padding: 10px;
       background: #007bff;
@@ -44,12 +49,13 @@
       border-radius: 3px;
       cursor: pointer;
     }
+    /* set style for login container hovering buttons feature */
     .login-container button:hover {
       background: #0056b3;
     }
   </style>
 </head>
-<body>
+<body> <!-- main content of page: a login container that allows users to either login, or declare they need to create an account -->
   <div class="login-container">
     <h2>Login</h2>
     <form method="post">

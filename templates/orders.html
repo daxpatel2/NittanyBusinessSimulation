@@ -3,13 +3,14 @@
   <head>
     <meta charset="UTF-8">
     <title>My Orders</title>
-    <style>
+    <style> /* set general style for the webpage */
       body {
         font-family: Arial, sans-serif;
         background: #f2f2f2;
         margin: 0;
         padding: 0;
       }
+      /* set general style for containers on this page */
       .container {
         background: #fff;
         padding: 20px;
@@ -18,6 +19,7 @@
         max-width: 800px;
         margin: 40px auto;
       }
+      /* set general style for tables on this page */
       table {
         width: 100%;
         border-collapse: collapse;
@@ -31,6 +33,7 @@
       th {
         background: #f7f7f7;
       }
+      /* set general style for buttons */
       .btn, .btn-back {
         display: inline-block;
         padding: 8px 12px;
@@ -41,12 +44,14 @@
         transition: background 0.3s ease;
         margin-right: 5px;
       }
+      /* set style for hovering over button */
       .btn:hover {
         background: #0056b3;
       }
       .btn-back {
         background: #6c757d;
       }
+      /* set style for hovering over button */
       .btn-back:hover {
         background: #5a6268;
       }
@@ -55,10 +60,10 @@
       }
     </style>
   </head>
-  <body>
+  <body> <!-- main content of page -->
     <div class="container">
       <h1>My Orders</h1>
-
+	<!-- if there are orders, display a table of them -->
       {% if orders %}
         <table>
           <thead>
@@ -110,10 +115,11 @@
             {% endfor %}
           </tbody>
         </table>
+	<!-- if there are no orders, display :You have no past orders."-->
       {% else %}
         <p class="no-orders">You have no past orders.</p>
       {% endif %}
-
+	<!-- back button to go to the buyer dashboard-->
       <a href="{{ url_for('buyer') }}" class="btn-back">Back to dashboard</a>
     </div>
   </body>

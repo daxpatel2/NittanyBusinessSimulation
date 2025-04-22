@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Your Profile</title>
-  <style>
+  <style> /* set general style for the webpage */
     body {
       font-family: Arial, sans-serif;
       background: #f2f2f2;
@@ -14,6 +14,7 @@
       align-items: center;
       height: 100vh;
     }
+    /* set style for the profile container */
     .profile-container {
       background: #fff;
       padding: 20px;
@@ -21,14 +22,17 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       width: 300px;
     }
+    /* set style for the headers in profile container */
     .profile-container h2 {
       text-align: center;
       margin-bottom: 20px;
     }
+    /* set style for the form in profile container */
     .profile-container form {
       display: flex;
       flex-direction: column;
     }
+    /* set style for input fields of profile container */
     .profile-container input[type="text"],
     .profile-container input[type="email"],
     .profile-container input[type="password"] {
@@ -37,6 +41,7 @@
       border: 1px solid #ccc;
       border-radius: 3px;
     }
+    /* set style for profile container buttons */
     .profile-container button {
       padding: 10px;
       background: #007bff;
@@ -48,6 +53,7 @@
     .profile-container button:hover {
       background: #0056b3;
     }
+    /* set styles for profile containers links */
     .profile-container .switch-link {
       text-align: center;
       margin-top: 10px;
@@ -61,6 +67,7 @@
     }
   </style>
 </head>
+<!-- main content of webpage: a profile container that contains information about the users account, the ability to change passwords, and any messages -->
 <body>
   <div class="profile-container">
     <h2>My Profile</h2>
