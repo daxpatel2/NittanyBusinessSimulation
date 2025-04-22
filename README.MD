@@ -32,9 +32,9 @@ Before running the applicaiton, ensure all steps below are completed.
 
 ### 1. Environment Setup
 Install the required Python packages by running:
-'''bash 
+```bash 
 pip install flask psycopg2-binary
-'''
+```
 ### 2. Database Connection 
 Open the Python file containing the database connection logic (e.g., `database_queries.py`) and update the `connect()` function with your PostgreSQL credentials:
 
@@ -60,22 +60,22 @@ Before inserting any data, ensure the `users` table exists in your PostgreSQL da
 ### 2. Populate the Users Table
 After creating the table, load user data from the `Users.csv` file. This file should contain user emails and plain-text passwords. The system will automatically hash the passwords using SHA-256 before inserting them into the database.
 
-'''python
+```python
 from database_queries import populate_table
 populate_table()
-'''
+```
 If there is an issue, make sure the Users.csv file is in the same directory and follows the correct format (email,password) as mentioned above.
 
 ### 3. Start the flask server
 To launch the login interface, run the Flask application by executing the following command in your terminal from the project’s root directory:
 
-'''bash
+```bash
 python app.py
-'''
+```
 
 The webpage should be available at:
-'''cpp
+```cpp
 http://127.0.0.1:5000/
-'''
+```
 
 ## END
