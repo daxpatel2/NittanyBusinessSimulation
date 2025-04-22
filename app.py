@@ -6,8 +6,6 @@ from database_queries import *
 # create flask app instance
 app = Flask(__name__)
 app.secret_key = "your_secret_key_here"  # needed for session management and flashing
-
-
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
     # message variable to store error or success messages for login
