@@ -1,4 +1,4 @@
-# app.py
+# imports
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from datetime import datetime
 from database_queries import *
@@ -50,7 +50,7 @@ def home_page():
     # render login page template with message variable
     return render_template('mainpage.html', message=message)
 
-
+# Route to register a user
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     message = None
@@ -297,6 +297,7 @@ def checkout(seller_email, listing_id):
                            product=product,
                            cards=cards)
 
+# Route for users profile information 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
     email = session['email']

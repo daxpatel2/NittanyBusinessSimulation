@@ -3,24 +3,58 @@ import hashlib
 from typing import Optional
 import pandas as pd
 import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-#establish connection with database
+
+#establish connection with database (and create one if it doesn't exist)
 def connect():
     try:
+        # Try to connect to the target 'project' database
         conn = psycopg2.connect(
             dbname="project",
             user="postgres",
-            password="1234",
+            password="password",  #Replace with your actual password
             host="localhost",
             port="5432"
         )
-        # Create a cursor and execute a simple test query
         cursor = conn.cursor()
-        print("Connected to the database successfully.")
+        print("Connected to 'project' database.")
         return conn, cursor
-    except Exception as e:
-        print("Error connecting to the database:", e)
-        return None, None
+    except psycopg2.OperationalError as e:
+        if "does not exist" in str(e):
+            print("'project' database not found. Creating it...")
+            try:
+                # Connect to default 'postgres' database to create 'project'
+                default_conn = psycopg2.connect(
+                    dbname="postgres",
+                    user="postgres",
+                    password="password",
+                    host="localhost",
+                    port="5432"
+                )
+                default_conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+                default_cursor = default_conn.cursor()
+                default_cursor.execute("CREATE DATABASE project;")
+                default_cursor.close()
+                default_conn.close()
+                print("Database 'project' created successfully.")
+                # Retry connecting to the new database
+                conn = psycopg2.connect(
+                    dbname="project",
+                    user="postgres",
+                    password="password",
+                    host="localhost",
+                    port="5432"
+                )
+                cursor = conn.cursor()
+                print("Connected to 'project' database.")
+                return conn, cursor
+            except Exception as create_err:
+                print("Failed to create database:", create_err)
+                return None, None
+        else:
+            print("Error connecting to database:", e)
+            return None, None
 
 # create initial tables 
 def create_tables():
@@ -453,14 +487,15 @@ def populate_reviews():
     conn.close()
 
 
+# populate all tables in correct order to ensure no foreign key violations
 def populate_all_tables():
+    populate_zipcode_info()
     populate_users()
     populate_helpdesk()
     populate_requests()
     populate_buyers()
     populate_credit_cards()
     populate_address()
-    populate_zipcode_info()
     populate_sellers()
     populate_categories()
     populate_product_listings()
