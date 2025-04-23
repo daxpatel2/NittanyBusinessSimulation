@@ -55,6 +55,9 @@ Open the Python file containing the database connection logic (e.g., `database_q
 
 If you do not already have PostgreSQL downloaded and setup, download it [here](https://www.postgresql.org/download/). Once downloaded, set up an account, then proceed with the above steps.
 
+#### If using Windows
+If you are on Windows, you may run into additional PATH issues regarding PostgreSQL. If (in later steps) when you try to run the app you run into login issues, this may be the cause. Refer to [this](https://sqlbackupandftp.com/blog/setting-windows-path-for-postgres-tools/) tutorial for help.
+
 ### 4. CSV Data
 Make sure that all CSV files are in the root directory of your project, if not, move them there.
 
