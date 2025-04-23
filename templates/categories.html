@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-  <head>
+	<head> <!-- steup general style for page-->
     <meta charset="utf-8">
     <title>Category Hierarchy</title>
     <style>
@@ -143,7 +143,7 @@
       <nav class="navbar">
         <a href="{{ url_for('buyer') }}" class="btn-home">Home</a>
       </nav>
-
+	<!-- display categories and subcategories-->
       <h1>Category: {{ parent }}</h1>
 
       {% if subcategories %}
@@ -160,7 +160,7 @@
       {% endif %}
 
       <hr>
-
+      <!-- display the products within that category-->
       {% if products %}
         <h3>Products in “{{ parent }}”</h3>
         <div class="card-grid">

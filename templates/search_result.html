@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Product Search Results</title>
-  <style>
+  <style> /* general style for page*/
     body {
       font-family: Arial, sans-serif;
       background: #f2f2f2;
@@ -14,6 +14,7 @@
       align-items: flex-start;
       min-height: 100vh;
     }
+    /* general dashboard container style*/
     .dashboard-container {
       background: #fff;
       padding: 20px;
@@ -22,6 +23,7 @@
       width: 800px;
       margin-top: 20px;
     }
+    /* dashboard header style*/
     .dashboard-container h1 {
       margin-bottom: 20px;
       text-align: center;
@@ -47,6 +49,7 @@
       margin-bottom: 5px;
       font-weight: bold;
     }
+    /* input text fields sytle*/
     .form-group input[type="text"],
     .form-group input[type="number"],
     .form-group select {
@@ -63,6 +66,7 @@
     .price-range input {
       flex: 1;
     }
+    /* button style*/
     .btn-primary {
       display: inline-block;
       padding: 10px 15px;
@@ -131,16 +135,17 @@
   </style>
 </head>
 <body>
+	<!-- main section of page: contains a search engine for available products-->
   <div class="dashboard-container">
     <h1>Product Search</h1>
-
+    <!-- search form to look for products-->
     <div class="search-form">
       <form method="get" action="{{ url_for('search_products_route') }}">
         <div class="form-group">
           <label for="keywords">Search Keywords:</label>
           <input type="text" id="keywords" name="keywords" placeholder="Enter product name, description, category..." value="{{ request.args.get('keywords', '') }}">
         </div>
-
+	<!-- form if buyer wants to filter search by price-->
         <div class="form-group">
           <label>Price Range:</label>
           <div class="price-range">
@@ -148,7 +153,7 @@
             <input type="number" id="max_price" name="max_price" placeholder="Max Price" min="0" step="0.01" value="{{ request.args.get('max_price', '') }}">
           </div>
         </div>
-
+	<!-- form if buyer wants to sort the search results-->
         <div class="form-group">
           <label for="sort_by">Sort By:</label>
           <select id="sort_by" name="sort_by">
@@ -157,7 +162,7 @@
             <option value="price_high_low" {% if request.args.get('sort_by') == 'price_high_low' %}selected{% endif %}>Price: High to Low</option>
           </select>
         </div>
-
+	<!-- form submission button-->
         <button type="submit" class="btn-primary">Search</button>
       </form>
     </div>
@@ -171,7 +176,7 @@
       {% endif %}
     </div>
     {% endif %}
-
+    <!-- display results-->
     <div class="section-header">Search Results</div>
     {% if products %}
       <div class="product-list">
@@ -188,7 +193,7 @@
     {% else %}
       <p class="no-results">No products found matching your search criteria.</p>
     {% endif %}
-
+    <!-- buttons to go to other pages-->
     <hr>
     <a href="{{ url_for('categories') }}?parent=All" class="btn-secondary">Browse Categories</a>
     {% if session.get('role') == 'buyer' %}
