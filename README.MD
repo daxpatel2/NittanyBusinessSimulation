@@ -53,7 +53,7 @@ Open the Python file containing the database connection logic (e.g., `database_q
 
 (2) The credentials (dbname, user, password, host, port) match your local or remote PostgreSQL server settings.
 
-If you do not already have PostgreSQL downloaded and setup, download it [here](#https://www.postgresql.org/download/). Once downloaded, set up an account, then proceed with the above steps.
+If you do not already have PostgreSQL downloaded and setup, download it [here](https://www.postgresql.org/download/). Once downloaded, set up an account, then proceed with the above steps.
 
 ### 4. CSV Data
 Make sure the Users.csv file is in the root directory of your project, if not, move it there. 
