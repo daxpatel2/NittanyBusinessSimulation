@@ -30,19 +30,32 @@ The system reads user data from a CSV file (`Users.csv`), hashes each password u
 ## Configuration
 Before running the applicaiton, ensure all steps below are completed.
 
-### 1. Environment Setup
+### 1. Downloading Code
+Clone the repository to your local machine using the following command:
+
+```bash
+git clone https://github.com/daxpatel2/NittanyBusinessSimulation/
+```
+Then, navigate to the project folder using:
+``` bash
+cd NittanyBusinessSimulation
+```
+
+### 2. Environment Setup
 Install the required Python packages by running:
 ```bash 
 pip install flask psycopg2-binary
 ```
-### 2. Database Connection 
-Open the Python file containing the database connection logic (e.g., `database_queries.py`) and update the `connect()` function with your PostgreSQL credentials:
+### 3. Database Connection 
+Open the Python file containing the database connection logic (e.g., `database_queries.py`) and update the `connect()` function with your PostgreSQL credentials. Make sure:
 
-(1) Make sure PostgreSQL is running.
+(1) PostgreSQL is running.
 
 (2) The credentials (dbname, user, password, host, port) match your local or remote PostgreSQL server settings.
 
-### 3. CSV Data
+If you do not already have PostgreSQL downloaded and setup, download it [here](#https://www.postgresql.org/download/). Once downloaded, set up an account, then proceed with the above steps.
+
+### 4. CSV Data
 Make sure the Users.csv file is in the root directory of your project, if not, move it there. 
 Verify that:
 
