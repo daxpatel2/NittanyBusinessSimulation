@@ -68,10 +68,10 @@ Verify that:
 Follow these steps to run the application and test the login system:
 
 ### 1. Create the Users Table
-Before inserting any data, ensure the `users` table exists in your PostgreSQL database. Run the `create_table()` function once to create it:
+Before inserting any data, ensure the `users` table exists in your PostgreSQL database. Run the `create_tables()` function once to create all tables:
 ```python
-from database_queries import create_table
-create_table()
+from database_queries import create_tables
+create_tables()
 ```
 
 ### 2. Populate the Users Table
