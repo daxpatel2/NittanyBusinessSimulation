@@ -13,7 +13,6 @@ This project implements a user login system as part of the Phase 2 Progress Revi
 - [Features](#features)
 - [Configuration](#configuration)
 - [Usage](#usage)
-- [File Structure](#filestructure)
 
 ## Overview
 
@@ -79,61 +78,10 @@ The webpage should be available at:
 http://127.0.0.1:5000/
 ```
 
-If you run into any issues:
-(1) Go back through the confirguration and usage steps.
-(2) Ensure no other service is using port 5000.
-(3) Make sure you are in the same directory as 'app.py'.
+If you run into any issues:  
+(1) Go back through the confirguration and usage steps.  
+(2) Ensure no other service is using port 5000.  
+(3) Make sure you are in the same directory as 'app.py'.  
 
-## File Structure
-The file structure is as follows:
-```text
-.idea/                       # IDE config files (for JetBrains/PyCharm IDEs)
-│   ├── .gitignore
-│   ├── Project.iml
-│   ├── dataSources.xml
-│   ├── misc.xml
-│   ├── modules.xml
-│   ├── sqldialects.xml
-│   ├── vcs.xml
-│   └── inspectionProfiles/
-│       └── profiles_settings.xml
-__pycache__/                  # Compiled CPython files
-│   ├── app.cpython-311.pyc
-│   ├── app.cpython-313.pyc
-│   ├── database_queries.cpython-311.pyc
-│   └── database_queries.cpython-313.pyc
-templates/                    # HTML views
-│   ├── buyers.html
-│   ├── categories.html
-│   ├── checkout.html
-│   ├── helpdesk_staff.html
-│   ├── mainpage.html
-│   ├── order_form.html
-│   ├── orders.html
-│   ├── product_detail.html
-│   ├── profile.html
-│   ├── register.html
-│   ├── review_form.html
-│   ├── search_result.html
-│   ├── seller_edit_listing.html
-│   ├── seller_listings.html
-│   ├── seller_new_listing.html
-│   └── sellers.html
-Address.csv                   # Dataset files
-Buyers.csv
-Categories.csv
-Credit_Cards.csv
-Helpdesk.csv
-Orders.csv
-Product_Listings.csv
-README.MD                    # ReadMe (you are here)
-Requests.csv
-Reviews.csv
-Sellers.csv
-Users.csv                    # User login data
-Zipcode_Info.csv
-app.py                       # Flask app entry point
-database_queries.py          # DB logic (connect, create, insert)
-```
 
 ## END
