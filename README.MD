@@ -44,7 +44,7 @@ cd NittanyBusinessSimulation
 ### 2. Environment Setup
 Install the required Python packages by running:
 ```bash 
-pip install flask psycopg2-binary
+pip install flask psycopg2-binary pandas
 ```
 ### 3. Database Connection 
 Open the Python file containing the database connection logic (e.g., `database_queries.py`) and update the `connect()` function with your PostgreSQL credentials. Make sure:
@@ -68,7 +68,11 @@ Verify that:
 Follow these steps to run the application and test the login system:
 
 ### 1. Create the Users Table
-Before inserting any data, ensure the `users` table exists in your PostgreSQL database. Run the `create_table()` function once to create it.
+Before inserting any data, ensure the `users` table exists in your PostgreSQL database. Run the `create_table()` function once to create it:
+```python
+from database_queries import create_table
+create_table()
+```
 
 ### 2. Populate the Users Table
 After creating the table, load user data from the `Users.csv` file. This file should contain user emails and plain-text passwords. The system will automatically hash the passwords using SHA-256 before inserting them into the database.
