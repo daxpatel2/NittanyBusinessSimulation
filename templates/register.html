@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Register Page</title>
-  <style>
+  <style> /* general style for page*/
       .register-container select {
       /* full width like inputs */
       width: 100%;
@@ -33,7 +33,7 @@
       background-position: right 10px center;
       background-size: 10px;
     }
-
+/* style for register container*/
     .register-container select:focus {
       border-color: #007bff;
       box-shadow: 0 0 2px rgba(0,123,255,0.5);
@@ -97,20 +97,22 @@
   </style>
 </head>
 <body>
+	<!-- main section of page: contains a form for new users to register-->
   <div class="register-container">
     <h2>Register</h2>
+    <!-- basic information about new user-->
     <form method="post" action="{{ url_for('register') }}">
       <input type="text"    name="username"         placeholder="Choose a username" required>
       <input type="email"   name="email"            placeholder="Enter your email" required>
       <input type="password"name="password"         placeholder="Create a password" required>
       <input type="password"name="confirm_password" placeholder="Confirm your password" required>
-
+      <!-- whether they will be seller or buyer-->
       <select name="role" id="role" required>
         <option value="" disabled selected>Select your role</option>
         <option value="buyer">Buyer</option>
         <option value="seller">Seller</option>
       </select>
-
+      <!-- button to submit new user form-->
       <button type="submit">Register</button>
     </form>
     <div class="switch-link">

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>Seller Dashboard</title>
-  <style>
+  <style> /* general style for page*/
     body {
       font-family: Arial, sans-serif;
       background: #f2f2f2;
@@ -14,6 +14,7 @@
       align-items: center;
       height: 100vh;
     }
+    /* dashboard container style*/
     .dashboard-container {
       background: #fff;
       padding: 20px;
@@ -45,10 +46,11 @@
   </style>
 </head>
 <body>
+	<!-- main section of page: contains a homepage for sellers-->
   <div class="dashboard-container">
     <h2>Welcome, Seller!</h2>
     <p>Logged in as: {{ email }}</p>
-
+    <!-- links to pages for the seller-->
     <a href="{{ url_for('manage_listings') }}">Manage Listings</a>
     <a href="{{ url_for('new_listing') }}">Add New Listing</a>
     <a href="{{ url_for('categories') }}?parent=All">Browse Categories</a>
