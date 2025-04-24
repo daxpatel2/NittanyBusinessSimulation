@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller Dashboard - Nittany Business</title>
+  <style>
+    /* General style for the page */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #DFE7F2;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    /* Style for the top navigation bar */
+    .top-bar {
+      background-color: #BEC3CC;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    /* Style for the user greeting on the left */
+    .top-bar .user-greeting {
+      color: #505B6A;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    /* Style for the icons container on the right */
+    .top-bar .icons {
+      display: flex;
+      gap: 1.5rem;
+    }
+    /* Style for icon links */
+    .top-bar .icons a {
+      color: #505B6A;
+      font-size: 1.5rem;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    /* Hover effect for icon links */
+    .top-bar .icons a:hover {
+      color: #B9D452;
+    }
+    /* Style for the main content area */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+      text-align: center;
+    }
+    /* Style for the page header */
+    h1 {
+      color: #505B6A;
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+    }
+    /* Style for the listings container */
+    .listings-container {
+      background-color: #BEC3CC;
+      padding: 1rem;
+      border-radius: 5px;
+      margin-bottom: 2rem;
+    }
+    /* Style for the add new listing button */
+    .add-button {
+      display: inline-block;
+      padding: 0.75rem 1.5rem;
+      background: #B9D452;
+      color: #000;
+      text-decoration: none;
+      border-radius: 3px;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: background 0.3s ease;
+      margin-bottom: 1rem;
+    }
+    .add-button:hover {
+      background: #8BAF3B;
+    }
+    /* Style for the listings table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+      background: #fff;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #BEC3CC;
+      text-align: left;
+      color: #505B6A;
+    }
+    th {
+      background: #e9f7fe;
+      font-weight: 600;
+    }
+    /* Style for action links (Edit, Remove) */
+    .actions a {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      margin-right: 0.5rem;
+      text-decoration: none;
+      border-radius: 3px;
+      font-size: 0.9rem;
+      transition: background 0.3s ease;
+    }
+    .actions a.edit {
+      background: #B9D452;
+      color: #000;
+    }
+    .actions a.edit:hover {
+      background: #8BAF3B;
+    }
+    .actions a.remove {
+      background: #ff4d4d;
+      color: #fff;
+    }
+    .actions a.remove:hover {
+      background: #cc3333;
+    }
+    /* Style for no listings message */
+    .no-listings {
+      color: #505B6A;
+      font-size: 1.1rem;
+      text-align: center;
+      margin: 2rem 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top navigation bar -->
+  <nav class="top-bar">
+    <div class="user-greeting">
+      Hello, {{ email }}
+    </div>
+    <div class="icons">
+      <a href="{{ url_for('profile') }}" title="Profile Settings">⚙️</a>
+    </div>
+  </nav>
+
+  <!-- Main content area -->
+  <div class="container">
+    <h1>Seller</h1>
+    <div class="listings-container">
+      <!-- Add New Listing button -->
+      <a href="{{ url_for('new_listing') }}" class="add-button">Add New Listing</a>
+      <!-- Listings table -->
+      {% if listings %}
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Category</th>
+              <th>Title / Name</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for listing in listings %}
+              <tr>
+                <td>{{ listing[0] }}</td>
+                <td>{{ listing[1] }}</td>
+                <td>{{ listing[2] }} – {{ listing[3] }}</td>
+                <td>${{ listing[6] }}</td>
+                <td>
+                  {% if listing[7] == 1 %}Active
+                  {% elif listing[7] == 0 %}Inactive
+                  {% else %}Sold
+                  {% endif %}
+                </td>
+                <td class="actions">
+                  <a href="{{ url_for('edit_listing', listing_id=listing[0]) }}" class="edit">Edit</a>
+                  <a href="{{ url_for('remove_listing', listing_id=listing[0]) }}" class="remove">Remove</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="no-listings">No listings found.</p>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

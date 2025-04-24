@@ -121,7 +121,11 @@ def buyer_home():
 def seller():
     if session.get('role') != 'seller':
         return redirect(url_for('mainpage'))
-    return render_template('sellers.html', email=session['email'])
+    email = session.get('email')
+    if not email:
+        return redirect(url_for('mainpage'))
+    listings = get_listings_by_seller(email)
+    return render_template('seller_home.html', email=email, listings=listings)
 
 @app.route('/helpdesk')
 def helpdesk():
@@ -163,9 +167,7 @@ def system_admin():
 def manage_listings():
     if session.get('role') != 'seller':
         return redirect(url_for('mainpage'))
-    seller_email = session['email']
-    listings = get_listings_by_seller(seller_email)
-    return render_template('seller_listings.html', listings=listings)
+    return redirect(url_for('seller'))
 
 @app.route('/seller/listings/new', methods=['GET','POST'])
 def new_listing():
@@ -253,11 +255,15 @@ def profile():
         flash("Please log in to access your profile.", "error")
         return redirect(url_for('mainpage'))
 
+    role = session.get('role')
+    # Determine template based on role
+    template = 'profile.html' if role == 'buyer' else 'profile_nonbuyer.html'
+
     # Fetch current profile info (excluding password!)
     conn, cursor = connect()
     if conn is None or cursor is None:
         flash("Database connection failed. Please try again later.", "error")
-        return render_template('profile.html', email=email, role=session.get('role'))
+        return render_template(template, email=email, role=role)
 
     try:
         cursor.execute("""
@@ -271,7 +277,7 @@ def profile():
         print(f"Error fetching user data for {email}: {e}")
         cursor.close()
         conn.close()
-        return render_template('profile.html', email=email, role=session.get('role'))
+        return render_template(template, email=email, role=role)
     finally:
         cursor.close()
         conn.close()
@@ -285,7 +291,7 @@ def profile():
         if new_password:
             if new_password != confirm_pw:
                 flash("Passwords don’t match.", "error")
-                return render_template('profile.html', email=email, role=session.get('role'))
+                return render_template(template, email=email, role=role)
             hashed = hash_password(new_password)
 
         # Build UPDATE statement dynamically
@@ -304,7 +310,7 @@ def profile():
             conn, cursor = connect()
             if conn is None or cursor is None:
                 flash("Database connection failed. Please try again later.", "error")
-                return render_template('profile.html', email=email, role=session.get('role'))
+                return render_template(template, email=email, role=role)
 
             try:
                 cursor.execute(sql, tuple(params))
@@ -322,10 +328,12 @@ def profile():
         else:
             # If no changes were made, re-render the page with a message
             flash("No changes made.", "info")
-            return render_template('profile.html', email=email, role=session.get('role'))
+            return render_template(template, email=email, role=role)
 
     # GET → render form with existing values
-    return render_template('profile.html', email=email, role=session.get('role'))
+    return render_template(template, email=email, role=role)
+
+
 
 @app.route('/product/<seller_email>/<int:listing_id>')
 def product_detail(seller_email, listing_id):

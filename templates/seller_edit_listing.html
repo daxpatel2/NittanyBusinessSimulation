@@ -1,90 +1,129 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Edit listing</title>
-  <style> /*settup general style for webpage*/
-    body { 
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Listing</title>
+  <style>
+    /* General style for the page */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #DFE7F2;
       margin: 0;
-      padding: 0;
+      padding: 2rem 0;
+      min-height: 100vh;
     }
-    .container { /*container style*/
-      max-width: 600px;
-      margin: 40px auto;
-      background: #fff;
-      padding: 20px;
+    /* Style for the form container */
+    .form-container {
+      background-color: #f9f9f9;
+      padding: 2rem;
+      border: 2px solid #B9D452;
       border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    h1 { margin-top: 0; } /*header style*/
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label { /*label style*/
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    } /* input text field style*/
-    input[type="text"],
-    input[type="number"],
-    textarea {
       width: 100%;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      box-sizing: border-box;
-      font-size: 1em;
+      max-width: 350px;
+      text-align: center;
+      margin: 0 auto;
     }
-    textarea { resize: vertical; }
-    .btn { /* buttons styles*/
-      display: inline-block;
-      padding: 8px 16px;
-      margin-right: 10px;
-      background: #007bff;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 3px;
-      cursor: pointer;
+    /* Style for the form header */
+    .form-container h2 {
+      color: #505B6A;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+    /* Style for the form */
+    .form-container form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    /* Style for labels */
+    .form-container label {
+      color: #505B6A;
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: left;
+    }
+    /* Style for inputs and textarea */
+    .form-container input,
+    .form-container textarea {
+      padding: 0.75rem;
+      border: 1px solid #BEC3CC;
+      border-radius: 5px;
+      font-size: 1rem;
+      background-color: #F9FAFB;
+      color: #505B6A;
+    }
+    /* Style for textarea */
+    .form-container textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    /* Style for placeholders */
+    .form-container input::placeholder,
+    .form-container textarea::placeholder {
+      color: #BEC3CC;
+    }
+    /* Style for the submit button */
+    .form-container button {
+      padding: 0.75rem;
+      background-color: #BEC3CC;
       border: none;
-      font-size: 1em;
+      color: #505B6A;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
-    .btn.secondary { background: #6c757d; }
+    /* Hover effect for the submit button */
+    .form-container button:hover {
+      background-color: #A8AEB7;
+      color: #B9D452;
+    }
+    /* Style for the cancel link */
+    .form-container a {
+      display: block;
+      margin-top: 1rem;
+      color: #505B6A;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+    }
+    /* Hover effect for the cancel link */
+    .form-container a:hover {
+      color: #B9D452;
+    }
   </style>
 </head>
 <body>
-	<!-- main section of webpage: contains a form that allows a seller to edit one of their  listings-->
-  <div class="container"> 
-    <h1>edit listing #{{ listing[0] }}</h1>
+  <!-- Main section: form to edit an existing listing -->
+  <div class="form-container">
+    <h2>Edit Item</h2>
     <form method="post" action="{{ url_for('edit_listing', listing_id=listing[0]) }}">
-      <div class="form-group"> 
-        <label for="category">Category</label>
-        <input type="text" id="category" name="category" value="{{ listing[1] }}" required>
-      </div>
-      <div class="form-group">
-        <label for="product_title">Product title</label>
-        <input type="text" id="product_title" name="product_title" value="{{ listing[2] }}" required>
-      </div>
-      <div class="form-group">
-        <label for="product_name">Product name</label>
-        <input type="text" id="product_name" name="product_name" value="{{ listing[3] }}" required>
-      </div>
-      <div class="form-group">
-        <label for="product_description">Description</label>
-        <textarea id="product_description" name="product_description" rows="4" required>{{ listing[4] }}</textarea>
-      </div>
-      <div class="form-group">
-        <label for="quantity">Quantity</label>
-        <input type="number" id="quantity" name="quantity" value="{{ listing[5] }}" required>
-      </div>
-      <div class="form-group">
-        <label for="product_price">Price</label>
-        <input type="number" step="0.01" id="product_price" name="product_price" value="{{ listing[6] }}" required>
-      </div>
-      <button type="submit" class="btn">Save changes</button>
-      <a href="{{ url_for('manage_listings') }}" class="btn secondary">Cancel</a>
+      <label for="category">Category</label>
+      <input type="text" id="category" name="category" value="{{ listing[1] }}" placeholder="Enter category" required>
+
+      <label for="product_title">Product Title</label>
+      <input type="text" id="product_title" name="product_title" value="{{ listing[2] }}" placeholder="Enter product title" required>
+
+      <label for="product_name">Product Name</label>
+      <input type="text" id="product_name" name="product_name" value="{{ listing[3] }}" placeholder="Enter product name" required>
+
+      <label for="product_description">Description</label>
+      <textarea id="product_description" name="product_description" placeholder="Enter description" required>{{ listing[4] }}</textarea>
+
+      <label for="quantity">Quantity</label>
+      <input type="number" id="quantity" name="quantity" value="{{ listing[5] }}" placeholder="Enter quantity" required>
+
+      <label for="product_price">Price</label>
+      <input type="number" step="0.01" id="product_price" name="product_price" value="{{ listing[6] }}" placeholder="Enter price" required>
+
+      <button type="submit">Save Changes</button>
     </form>
+
+    <a href="{{ url_for('manage_listings') }}">Back to my listings</a>
   </div>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9357070ef9d8804f',t:'MTc0NTUxMjY3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

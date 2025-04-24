@@ -1,52 +1,134 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>New Listing</title>
-    <style> /* setup general style for page*/
-      body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 40px; }
-      .form-container { background: #fff; padding: 20px; border-radius: 5px; max-width: 500px; margin: auto; }
-      .form-container h1 { margin-bottom: 20px; }
-      .form-container label { display: block; margin-top: 10px; font-weight: bold; }
-      .form-container input, .form-container select, .form-container textarea {
-        width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 3px;
-      }
-      .form-container button { margin-top: 20px; padding: 10px 15px; background: #007bff; color: #fff; border: none; border-radius: 3px; cursor: pointer; }
-      .form-container button:hover { background: #0056b3; }
-      .back-link { display: block; margin-top: 15px; text-align: center; }
-    </style>
-  </head>
-  <body>
-	  <!-- main section of webpage: contains a form that allows sellers to list a new product-->
-    <div class="form-container">
-      <h1>Publish New Listing</h1>
-      <form method="post">
-        <label for="category">Category</label>
-        <select name="category" id="category" required>
-          {% for cat in categories %}
-            <option value="{{ cat }}">{{ cat }}</option>
-          {% endfor %}
-        </select>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Listing</title>
+  <style>
+    /* General style for the page */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #DFE7F2;
+      margin: 0;
+      padding: 2rem 0;
+      min-height: 100vh;
+    }
+    /* Style for the form container */
+    .form-container {
+      background-color: #f9f9f9;
+      padding: 2rem;
+      border: 2px solid #B9D452;
+      border-radius: 5px;
+      width: 100%;
+      max-width: 350px;
+      text-align: center;
+      margin: 0 auto;
+    }
+    /* Style for the form header */
+    .form-container h2 {
+      color: #505B6A;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+    /* Style for the form */
+    .form-container form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    /* Style for labels */
+    .form-container label {
+      color: #505B6A;
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: left;
+    }
+    /* Style for inputs, select, and textarea */
+    .form-container input,
+    .form-container select,
+    .form-container textarea {
+      padding: 0.75rem;
+      border: 1px solid #BEC3CC;
+      border-radius: 5px;
+      font-size: 1rem;
+      background-color: #F9FAFB;
+      color: #505B6A;
+    }
+    /* Style for textarea */
+    .form-container textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    /* Style for placeholders */
+    .form-container input::placeholder,
+    .form-container textarea::placeholder {
+      color: #BEC3CC;
+    }
+    /* Style for the submit button */
+    .form-container button {
+      padding: 0.75rem;
+      background-color: #BEC3CC;
+      border: none;
+      color: #505B6A;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    /* Hover effect for the submit button */
+    .form-container button:hover {
+      background-color: #A8AEB7;
+      color: #B9D452;
+    }
+    /* Style for the back link */
+    .form-container a {
+      display: block;
+      margin-top: 1rem;
+      color: #505B6A;
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+    }
+    /* Hover effect for the back link */
+    .form-container a:hover {
+      color: #B9D452;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main section: form to create a new listing -->
+  <div class="form-container">
+    <h2>Add New Item</h2>
+    <form method="post">
+      <label for="category">Category</label>
+      <select name="category" id="category" required>
+        {% for cat in categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+        {% endfor %}
+      </select>
 
-        <label for="product_title">Product Title</label>
-        <input type="text" name="product_title" id="product_title" required>
+      <label for="product_title">Product Title</label>
+      <input type="text" name="product_title" id="product_title" placeholder="Enter product title" required>
 
-        <label for="product_name">Product Name</label>
-        <input type="text" name="product_name" id="product_name" required>
+      <label for="product_name">Product Name</label>
+      <input type="text" name="product_name" id="product_name" placeholder="Enter product name" required>
 
-        <label for="product_description">Description</label>
-        <textarea name="product_description" id="product_description" rows="4" required></textarea>
+      <label for="product_description">Description</label>
+      <textarea name="product_description" id="product_description" placeholder="Enter description" required></textarea>
 
-        <label for="quantity">Quantity</label>
-        <input type="number" name="quantity" id="quantity" min="1" required>
+      <label for="quantity">Quantity</label>
+      <input type="number" name="quantity" id="quantity" min="1" placeholder="Enter quantity" required>
 
-        <label for="product_price">Price</label>
-        <input type="number" name="product_price" id="product_price" step="0.01" required>
+      <label for="product_price">Price</label>
+      <input type="number" name="product_price" id="product_price" step="0.01" placeholder="Enter price" required>
 
-        <button type="submit">Create Listing</button>
-      </form>
+      <button type="submit">Create Listing</button>
+    </form>
 
-      <a class="back-link" href="{{ url_for('manage_listings') }}">← Back to my listings</a>
-    </div>
-  </body>
+    <a href="{{ url_for('manage_listings') }}">Back to my listings</a>
+  </div>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9357070ecde1b036',t:'MTc0NTUxMjY3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
 </html>
