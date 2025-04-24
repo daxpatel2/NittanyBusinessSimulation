@@ -2,11 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login Page</title>
-  <style> /* set general style for webpage */
+  <style>
+  /* general style for page */
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      font-family: 'Arial', sans-serif;
+      background-color: #DFE7F2;
       margin: 0;
       padding: 0;
       display: flex;
@@ -14,48 +16,90 @@
       align-items: center;
       height: 100vh;
     }
-    /* set general style for the login container */
+    /* container style */
     .login-container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      width: 300px;
-    }
-    /* set style for login container headers */
-    .login-container h2 {
+      background-color: #FFFFFF;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 350px;
       text-align: center;
-      margin-bottom: 20px;
     }
-    /* set style for login cnotainer forms */
+    .login-container h2 {
+      color: #505B6A;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
     .login-container form {
       display: flex;
       flex-direction: column;
+      gap: 1rem;
     }
-    /* set style for login container inputs fields */
     .login-container input[type="email"],
     .login-container input[type="password"] {
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
+      padding: 0.75rem;
+      border: 1px solid #BEC3CC;
+      border-radius: 5px;
+      font-size: 1rem;
+      background-color: #F9FAFB;
     }
-    /* set style for login container buttons */
+    .login-container input[type="email"]::placeholder,
+    .login-container input[type="password"]::placeholder {
+      color: #BEC3CC;
+    }
     .login-container button {
-      padding: 10px;
-      background: #007bff;
+      padding: 0.75rem;
+      background-color: #B9D452;
       border: none;
-      color: #fff;
-      border-radius: 3px;
+      color: #FFFFFF;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-weight: 500;
       cursor: pointer;
     }
-    /* set style for login container hovering buttons feature */
     .login-container button:hover {
-      background: #0056b3;
+      background-color: #A3C03A;
+    }
+    .login-container a {
+      display: block;
+      margin-top: 1rem;
+      color: #505B6A;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .login-container a:hover {
+      color: #B9D452;
+    }
+    dialog {
+      border: none;
+      border-radius: 5px;
+      padding: 1.5rem;
+      background-color: #FFFFFF;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      max-width: 300px;
+      margin: auto;
+    }
+    dialog p {
+      color: #505B6A;
+      margin-bottom: 1rem;
+    }
+    dialog button {
+      padding: 0.5rem 1rem;
+      background-color: #BEC3CC;
+      border: none;
+      color: #505B6A;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    dialog button:hover {
+      background-color: #A8AEB7;
     }
   </style>
 </head>
-<body> <!-- main content of page: a login container that allows users to either login, or declare they need to create an account -->
+<body>
+<!-- main section: includes a login for current users, or a link to register a new account -->
   <div class="login-container">
     <h2>Login</h2>
     <form method="post">
@@ -63,16 +107,12 @@
       <input type="password" name="password" placeholder="Enter your password" required>
       <button type="submit">Login</button>
     </form>
-      <br>
-      <a href="/register">
-          Dont have an account? Create one
-      </a>
+    <a href="/register">Don't have an account? Create one</a>
   </div>
 
   {% if message %}
   <dialog open>
     <p>{{ message }}</p>
-    <!-- The form with method="dialog" allows the user to close the dialog -->
     <form method="dialog">
       <button>Close</button>
     </form>

@@ -2,46 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- Ensure responsiveness on mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register Page</title>
-  <style> /* general style for page*/
-      .register-container select {
-      /* full width like inputs */
-      width: 100%;
-      /* same padding & spacing */
-      padding: 10px;
-      margin-bottom: 15px;
-      /* border & rounded corners */
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      /* white background and pointer cursor */
-      background-color: #fff;
-      cursor: pointer;
-      /* remove default focus outline */
-      outline: none;
-      /* for consistent font */
-      font-family: Arial, sans-serif;
-      font-size: 1em;
-      /* add a little right padding so options text doesn’t bump the arrow */
-      padding-right: 30px;
-      /* appearance reset for WebKit/Firefox */
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      /* custom down‑arrow using SVG data‑URI */
-      background-image: url("data:image/svg+xml;charset=UTF-8,<svg fill='%23666' height='10' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'><path d='M0 0l5 6 5-6z'/></svg>");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      background-size: 10px;
-    }
-/* style for register container*/
-    .register-container select:focus {
-      border-color: #007bff;
-      box-shadow: 0 0 2px rgba(0,123,255,0.5);
-    }
-
+  <!-- Styles for the register page, matching the login page -->
+  <style>
+    /* General style for the page */
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      font-family: 'Arial', sans-serif;
+      background-color: #DFE7F2;
       margin: 0;
       padding: 0;
       display: flex;
@@ -49,77 +18,156 @@
       align-items: center;
       height: 100vh;
     }
+    /* Style for the register container */
     .register-container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      width: 300px;
-    }
-    .register-container h2 {
+      background-color: #FFFFFF;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 350px;
       text-align: center;
-      margin-bottom: 20px;
     }
+    /* Style for the register container header */
+    .register-container h2 {
+      color: #505B6A;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+    /* Style for the register form */
     .register-container form {
       display: flex;
       flex-direction: column;
+      gap: 1rem;
     }
+    /* Style for text, email, and password inputs */
     .register-container input[type="text"],
     .register-container input[type="email"],
     .register-container input[type="password"] {
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
+      padding: 0.75rem;
+      border: 1px solid #BEC3CC;
+      border-radius: 5px;
+      font-size: 1rem;
+      background-color: #F9FAFB;
     }
+    /* Style for placeholders in inputs */
+    .register-container input[type="text"]::placeholder,
+    .register-container input[type="email"]::placeholder,
+    .register-container input[type="password"]::placeholder {
+      color: #BEC3CC;
+    }
+    /* Style for the role dropdown */
+    .register-container select {
+      width: 100%;
+      padding: 0.75rem;
+      margin-bottom: 0;
+      border: 1px solid #BEC3CC;
+      border-radius: 5px;
+      background-color: #F9FAFB;
+      cursor: pointer;
+      outline: none;
+      font-family: 'Arial', sans-serif;
+      font-size: 1rem;
+      padding-right: 30px;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,<svg fill='%23505B6A' height='10' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'><path d='M0 0l5 6 5-6z'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 10px;
+      color: #505B6A;
+    }
+    /* Placeholder text color for select (when no option is selected) */
+    .register-container select option[disabled][selected] {
+      color: #BEC3CC;
+    }
+    /* Style for the register button */
     .register-container button {
-      padding: 10px;
-      background: #007bff;
+      padding: 0.75rem;
+      background-color: #B9D452;
       border: none;
-      color: #fff;
-      border-radius: 3px;
+      color: #FFFFFF;
+      border-radius: 5px;
+      font-size: 1rem;
+      font-weight: 500;
       cursor: pointer;
     }
+    /* Hover effect for the register button */
     .register-container button:hover {
-      background: #0056b3;
+      background-color: #A3C03A;
     }
+    /* Style for the switch link section */
     .register-container .switch-link {
-      text-align: center;
-      margin-top: 10px;
+      margin-top: 1rem;
     }
+    /* Style for the login link */
     .register-container .switch-link a {
-      color: #007bff;
+      color: #505B6A;
       text-decoration: none;
+      font-size: 0.9rem;
     }
+    /* Hover effect for the login link */
     .register-container .switch-link a:hover {
-      text-decoration: underline;
+      color: #B9D452;
+    }
+    /* Style for the dialog (for messages) */
+    dialog {
+      border: none;
+      border-radius: 5px;
+      padding: 1.5rem;
+      background-color: #FFFFFF;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      max-width: 300px;
+      margin: auto;
+    }
+    /* Style for the dialog message text */
+    dialog p {
+      color: #505B6A;
+      margin-bottom: 1rem;
+    }
+    /* Style for the dialog close button */
+    dialog button {
+      padding: 0.5rem 1rem;
+      background-color: #BEC3CC;
+      border: none;
+      color: #505B6A;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    /* Hover effect for the dialog close button */
+    dialog button:hover {
+      background-color: #A8AEB7;
     }
   </style>
 </head>
 <body>
-	<!-- main section of page: contains a form for new users to register-->
+  <!-- Main section of page: contains a form for new users to register -->
   <div class="register-container">
     <h2>Register</h2>
-    <!-- basic information about new user-->
+    <!-- Basic information about new user -->
     <form method="post" action="{{ url_for('register') }}">
-      <input type="text"    name="username"         placeholder="Choose a username" required>
-      <input type="email"   name="email"            placeholder="Enter your email" required>
-      <input type="password"name="password"         placeholder="Create a password" required>
-      <input type="password"name="confirm_password" placeholder="Confirm your password" required>
-      <!-- whether they will be seller or buyer-->
+      <input type="text" name="username" placeholder="Choose a username" required>
+      <input type="email" name="email" placeholder="Enter your email" required>
+      <input type="password" name="password" placeholder="Create a password" required>
+      <input type="password" name="confirm_password" placeholder="Confirm your password" required>
+      <!-- Whether they will be a seller or buyer -->
       <select name="role" id="role" required>
         <option value="" disabled selected>Select your role</option>
         <option value="buyer">Buyer</option>
         <option value="seller">Seller</option>
       </select>
-      <!-- button to submit new user form-->
+      <!-- Button to submit new user form -->
       <button type="submit">Register</button>
     </form>
+    <!-- Link to switch to login page -->
     <div class="switch-link">
       <a href="/">Already have an account? Log in</a>
     </div>
   </div>
 
+  <!-- Dialog for displaying messages (e.g., errors or success) -->
   {% if message %}
   <dialog open>
     <p>{{ message }}</p>

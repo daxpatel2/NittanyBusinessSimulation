@@ -1,126 +1,174 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title>My Orders</title>
-    <style> /* set general style for the webpage */
-      body {
-        font-family: Arial, sans-serif;
-        background: #f2f2f2;
-        margin: 0;
-        padding: 0;
-      }
-      /* set general style for containers on this page */
-      .container {
-        background: #fff;
-        padding: 20px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        max-width: 800px;
-        margin: 40px auto;
-      }
-      /* set general style for tables on this page */
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-      }
-      th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: center;
-      }
-      th {
-        background: #f7f7f7;
-      }
-      /* set general style for buttons */
-      .btn, .btn-back {
-        display: inline-block;
-        padding: 8px 12px;
-        background: #007bff;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 3px;
-        transition: background 0.3s ease;
-        margin-right: 5px;
-      }
-      /* set style for hovering over button */
-      .btn:hover {
-        background: #0056b3;
-      }
-      .btn-back {
-        background: #6c757d;
-      }
-      /* set style for hovering over button */
-      .btn-back:hover {
-        background: #5a6268;
-      }
-      .no-orders {
-        color: #555;
-      }
-    </style>
-  </head>
-  <body> <!-- main content of page -->
-    <div class="container">
-      <h1>My Orders</h1>
-	<!-- if there are orders, display a table of them -->
-      {% if orders %}
-        <table>
-          <thead>
-            <tr>
-              <th>Order id</th>
-              <th>Date</th>
-              <th>Product</th>
-              <th>Quantity</th>
-              <th>Total Paid</th>
-              <th>Seller Rating</th>
-              <th>Review</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for order in orders %}
-              <tr>
-                <td>{{ order[0] }}</td>
-                <td>{{ order[1] }}</td>
-                <td>
-                  <a href="{{ url_for('product_detail',
-                                       seller_email=order[2],
-                                       listing_id=order[3]) }}">
-                    View Product
-                  </a>
-                </td>
-                <td>{{ order[4] }}</td>
-                <td>${{ order[5] }}</td>
-                <td>
-                  {% if order[6] is not none %}
-                    {{ order[6] }} / 5
-                  {% else %}
-                    n/a
-                  {% endif %}
-                </td>
-                <td>
-                  <a href="{{ url_for('review', order_id=order[0]) }}" class="btn">
-                    Review
-                  </a>
-                </td>
-                <td>
-                  <a href="{{ url_for('order_form',
-                                       seller_email=order[2],
-                                       listing_id=order[3]) }}" class="btn">
-                    Reorder
-                  </a>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-	<!-- if there are no orders, display :You have no past orders."-->
-      {% else %}
-        <p class="no-orders">You have no past orders.</p>
-      {% endif %}
-	<!-- back button to go to the buyer dashboard-->
-      <a href="{{ url_for('buyer') }}" class="btn-back">Back to dashboard</a>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders - Nittany Business</title>
+  <style>
+    /* General style for the page */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #DFE7F2;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    /* Style for the top navigation bar */
+    .top-bar {
+      background-color: #BEC3CC;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    /* Style for the user greeting on the left */
+    .top-bar .user-greeting {
+      color: #505B6A;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    /* Style for the icons container on the right */
+    .top-bar .icons {
+      display: flex;
+      gap: 1.5rem;
+    }
+    /* Style for icon links */
+    .top-bar .icons a {
+      color: #505B6A;
+      font-size: 1.5rem;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    /* Hover effect for icon links */
+    .top-bar .icons a:hover {
+      color: #B9D452;
+    }
+    /* Style for the main content area */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+    /* Style for the page header */
+    h1 {
+      color: #505B6A;
+      font-size: 2.5rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    /* Style for the table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: center;
+    }
+    th {
+      background-color: #BEC3CC;
+      color: #505B6A;
+    }
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+    /* Style for links (used for View Product, Review, Reorder, and Back to dashboard) */
+    a {
+      color: #505B6A;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    a:hover {
+      color: #B9D452;
+    }
+    /* Style for the no-orders message */
+    .no-orders {
+      color: #505B6A;
+      text-align: center;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top navigation bar (consistent with buyer_home.html) -->
+  <nav class="top-bar">
+    <div class="user-greeting">
+      Hello, {{ session.get('email', 'User') }}
+ determin    </div>
+    <div class="icons">
+      <a href="{{ url_for('orders') }}" title="Shopping Cart">🛒</a>
+      <a href="{{ url_for('orders') }}" title="View Orders to Review">📄</a>
+      <a href="{{ url_for('profile') }}" title="Profile Settings">⚙️</a>
     </div>
-  </body>
+  </nav>
+
+  <!-- Main content area -->
+  <div class="container">
+    <h1>My Orders</h1>
+    <!-- If there are orders, display a table of them -->
+    {% if orders %}
+      <table>
+        <thead>
+          <tr>
+            <th>Order id</th>
+            <th>Date</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Total Paid</th>
+            <th>Seller Rating</th>
+            <th>Review</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td>{{ order[0] }}</td>
+              <td>{{ order[1] }}</td>
+              <td>
+                <a href="{{ url_for('product_detail',
+                                     seller_email=order[2],
+                                     listing_id=order[3]) }}">
+                  View Product
+                </a>
+              </td>
+              <td>{{ order[4] }}</td>
+              <td>${{ order[5] }}</td>
+              <td>
+                {% if order[-1] is not none %}
+                  {{ order[-1] }} / 5
+                {% else %}
+                  n/a
+                {% endif %}
+              </td>
+              <td>
+                <a href="{{ url_for('review', order_id=order[0]) }}">
+                  Review
+                </a>
+              </td>
+              <td>
+                <a href="{{ url_for('order_form',
+                                     seller_email=order[2],
+                                     listing_id=order[3]) }}">
+                  Reorder
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    <!-- If there are no orders, display "You have no past orders." -->
+    {% else %}
+      <p class="no-orders">You have no past orders.</p>
+    {% endif %}
+    <!-- Back button to go to the buyer dashboard -->
+    <a href="{{ url_for('buyer') }}">Back to dashboard</a>
+  </div>
+</body>
 </html>

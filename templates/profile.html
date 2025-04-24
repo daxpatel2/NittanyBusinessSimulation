@@ -2,77 +2,159 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Your Profile</title>
-  <style> /* set general style for the webpage */
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - Nittany Business</title>
+  <style>
+    /* General style for the page */
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      font-family: 'Arial', sans-serif;
+      background-color: #DFE7F2;
       margin: 0;
       padding: 0;
+      min-height: 100vh;
+    }
+    /* Style for the top navigation bar */
+    .top-bar {
+      background-color: #BEC3CC;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
       align-items: center;
-      height: 100vh;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    /* set style for the profile container */
+    /* Style for the user greeting on the left */
+    .top-bar .user-greeting {
+      color: #505B6A;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    /* Style for the icons container on the right */
+    .top-bar .icons {
+      display: flex;
+      gap: 1.5rem;
+    }
+    /* Style for icon links */
+    .top-bar .icons a {
+      color: #505B6A;
+      font-size: 1.5rem;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    /* Hover effect for icon links */
+    .top-bar .icons a:hover {
+      color: #B9D452;
+    }
+    /* Style for the main content area */
     .profile-container {
-      background: #fff;
-      padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      width: 300px;
+      max-width: 400px;
+      margin: 2rem auto;
+      padding: 2rem;
     }
-    /* set style for the headers in profile container */
-    .profile-container h2 {
+    /* Style for the page header */
+    h2 {
+      color: #505B6A;
+      font-size: 2rem;
+      font-weight: 600;
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 1.5rem;
     }
-    /* set style for the form in profile container */
-    .profile-container form {
+    /* Style for the form */
+    form {
       display: flex;
       flex-direction: column;
     }
-    /* set style for input fields of profile container */
-    .profile-container input[type="text"],
-    .profile-container input[type="email"],
-    .profile-container input[type="password"] {
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 3px;
+    /* Style for labels */
+    label {
+      color: #505B6A;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
     }
-    /* set style for profile container buttons */
-    .profile-container button {
-      padding: 10px;
-      background: #007bff;
+    /* Style for the small note under New Password */
+    small {
+      color: #505B6A;
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+    /* Style for input fields */
+    input[type="password"] {
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      border: 1px solid #BEC3CC;
+      border-radius: 3px;
+      font-size: 1rem;
+      color: #505B6A;
+    }
+    /* Style for the submit button (styled as a link to match other pages) */
+    button {
+      background: none;
       border: none;
-      color: #fff;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-    .profile-container button:hover {
-      background: #0056b3;
-    }
-    /* set styles for profile containers links */
-    .profile-container .switch-link {
+      padding: 0.75rem;
+      color: #505B6A;
+      font-size: 1rem;
       text-align: center;
-      margin-top: 10px;
+      cursor: pointer;
+      transition: color 0.3s ease;
     }
-    .profile-container .switch-link a {
-      color: #007bff;
+    button:hover {
+      color: #B9D452;
+    }
+    /* Style for links (including Back to dashboard) */
+    a {
+      color: #505B6A;
       text-decoration: none;
+      transition: color 0.3s ease;
     }
-    .profile-container .switch-link a:hover {
-      text-decoration: underline;
+    a:hover {
+      color: #B9D452;
+    }
+    /* Style for the back link container */
+    .back-link {
+      margin-top: 1rem;
+    }
+    /* Style for flash messages */
+    .flashes {
+      list-style: none;
+      padding: 0;
+      margin: 1rem 0 0;
+      text-align: center;
+    }
+    .flashes li {
+      color: #505B6A;
+      font-size: 0.9rem;
+      padding: 0.5rem;
+    }
+    .flashes .success {
+      color: #B9D452;
+    }
+    .flashes .error {
+      color: #ff4d4d;
+    }
+    .flashes .info {
+      color: #505B6A;
     }
   </style>
 </head>
-<!-- main content of webpage: a profile container that contains information about the users account, the ability to change passwords, and any messages -->
 <body>
+  <!-- Top navigation bar (consistent with other pages) -->
+  <nav class="top-bar">
+    <div class="user-greeting">
+      Hello, {{ email }}
+    </div>
+    <div class="icons">
+      <a href="{{ url_for('orders') }}" title="Shopping Cart">🛒</a>
+      <a href="{{ url_for('orders') }}" title="View Orders to Review">📄</a>
+      <a href="{{ url_for('profile') }}" title="Profile Settings">⚙️</a>
+    </div>
+  </nav>
+
+  <!-- Main content area -->
   <div class="profile-container">
     <h2>My Profile</h2>
     <form method="post" action="{{ url_for('profile') }}">
-      <label>Email (cannot change):</label>
+      <label>Email: {{ email }}</label>
 
       <label>New Password <small>(leave blank to keep current)</small>:</label>
       <input type="password" name="new_password">
@@ -92,6 +174,13 @@
         </ul>
       {% endif %}
     {% endwith %}
+
+    <!-- Back to dashboard button -->
+    <div class="back-link">
+      <a href="{% if role == 'buyer' %}{{ url_for('buyer') }}{% elif role == 'seller' %}{{ url_for('seller') }}{% else %}{{ url_for('helpdesk') }}{% endif %}">
+        Back to dashboard
+      </a>
+    </div>
   </div>
 </body>
 </html>

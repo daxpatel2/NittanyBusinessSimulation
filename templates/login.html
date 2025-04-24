@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Nittany Business</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #DFE7F2;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-container {
+            background-color: #BEC3CC;
+            padding: 2rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            color: #505B6A;
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            color: #505B6A;
+            margin-bottom: 0.5rem;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #BEC3CC;
+            border-radius: 3px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        button {
+            background: none;
+            border: none;
+            color: #505B6A;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            padding: 0.5rem 1rem;
+        }
+        button:hover {
+            color: #B9D452;
+        }
+        .flash-messages {
+            margin-bottom: 1rem;
+        }
+        .flash-messages .error {
+            color: #d9534f;
+            background-color: #f2dede;
+            padding: 0.5rem;
+            border-radius: 3px;
+            margin-bottom: 0.5rem;
+        }
+        .flash-messages .success {
+            color: #3c763d;
+            background-color: #dff0d8;
+            padding: 0.5rem;
+            border-radius: 3px;
+            margin-bottom: 0.5rem;
+        }
+        .register-link {
+            margin-top: 1rem;
+        }
+        .register-link a {
+            color: #505B6A;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .register-link a:hover {
+            color: #B9D452;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        <form method="post" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+        </form>
+        <div class="register-link">
+            <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a>.</p>
+        </div>
+    </div>
+</body>
+</html>

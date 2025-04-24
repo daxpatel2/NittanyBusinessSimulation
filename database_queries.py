@@ -593,30 +593,19 @@ def get_user_role(email: str) -> str:
 
 # this function retrieves subcategories from the database for a given parent category
 def get_subcategories(parent_category: str) -> list:
-    conn, cursor = connect()  # connect to the database
+    conn, cursor = connect()
     if conn is None or cursor is None:
-        return []  # if connection fails, return an empty list
-
-    # if the parent category is "All", attempt to get top-level categories defined in the categories table
+        return []
+    # Map "All" to "Root" to match the database structure
     if parent_category == "All":
         query = "SELECT category_name FROM categories WHERE parent_category = %s"
-        cursor.execute(query, ("All",))
-        results = cursor.fetchall()  # fetch all matching rows
-        # fallback: if no top-level categories were defined in the categories table,
-        # retrieve distinct categories from the product_listings table that are non-null and non-empty
-        if not results:
-            query = "SELECT DISTINCT category FROM product_listings WHERE category IS NOT NULL AND category <> ''"
-            cursor.execute(query)
-            results = cursor.fetchall()
+        cursor.execute(query, ("Root",))
     else:
-        # if the parent is a specific category, query the categories table for its subcategories
         query = "SELECT category_name FROM categories WHERE parent_category = %s"
         cursor.execute(query, (parent_category,))
-        results = cursor.fetchall()  # fetch all matching rows
-
+    results = cursor.fetchall()
     cursor.close()
     conn.close()
-    # process the fetched rows and return a simple list of subcategory names
     return [row[0] for row in results]
 
 
@@ -974,15 +963,14 @@ def insert_review(order_id: int, review_desc: str, rating: int) -> bool:
         cursor.close()  # close cursor
         conn.close()  # close connection
 
-
 # calculates the average rating for a seller across all reviews
 def get_seller_average_rating(seller_email: str) -> Optional[float]:
     conn, cursor = connect()  # open DB connection
     if conn is None or cursor is None:
         return None  # abort if connection fails
-    # compute average rating, cast to numeric(10,2)
+    # compute average rating, cast review_desc to integer since columns are swapped
     sql = """
-         SELECT AVG(r.rating::integer)::numeric(10,2)
+         SELECT AVG(r.review_desc::integer)::numeric(10,2)
            FROM reviews r
            JOIN orders o ON r.order_id = o.order_id
           WHERE o.seller_email = %s
@@ -998,7 +986,8 @@ def search_products(
         keywords=None,
         min_price=None,
         max_price=None,
-        sort_by="relevance"):
+        sort_by="relevance",
+        category=None):
     conn, cursor = connect()
     if conn is None or cursor is None:
         return []
@@ -1014,6 +1003,11 @@ def search_products(
     """
 
     params = []
+
+    # Add category filter if provided and not "All"
+    if category and category != "All":
+        query += " AND p.category = %s"
+        Ziemi.append(category)
 
     # Add keyword search if provided
     if keywords and keywords.strip():

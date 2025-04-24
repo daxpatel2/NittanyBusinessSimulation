@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buyer Dashboard - Nittany Business</title>
+  <style>
+    /* General style for the page */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #DFE7F2;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    /* Style for the top navigation bar */
+    .top-bar {
+      background-color: #BEC3CC;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    /* Style for the user greeting on the left */
+    .top-bar .user-greeting {
+      color: #505B6A;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    /* Style for the icons container on the right */
+    .top-bar .icons {
+      display: flex;
+      gap: 1.5rem;
+    }
+    /* Style for icon links */
+    .top-bar .icons a {
+      color: #505B6A;
+      font-size: 1.5rem;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    /* Hover effect for icon links */
+    .top-bar .icons a:hover {
+      color: #B9D452;
+    }
+    /* Style for the main content area */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+    /* Style for the content area with sidebar and main content */
+    .content-wrapper {
+      display: flex;
+      gap: 2rem;
+    }
+    /* Style for the sidebar (category section) */
+    .sidebar {
+      width: 250px;
+      flex-shrink: 0;
+    }
+    /* Style for the main content (search and results) */
+    .main-content {
+      flex: 1;
+    }
+    /* Style for the page header */
+    h1 {
+      color: #505B6A;
+      font-size: 2.5rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    /* Style for section headers */
+    .section-header {
+      color: #505B6A;
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    /* Style for the search form */
+    .search-form {
+      margin-bottom: 2rem;
+      background-color: #BEC3CC;
+      padding: 1rem;
+      border-radius: 5px;
+    }
+    /* Style for the top row (keywords input only) */
+    .search-form .search-row {
+      margin-bottom: 1rem;
+    }
+    /* Style for form inputs and select */
+    .search-form input[type="text"],
+    .search-form input[type="number"],
+    .search-form select {
+      padding: 0.5rem;
+      border: 1px solid #BEC3CC;
+      border-radius: 3px;
+      font-size: 1rem;
+      color: #505B6A;
+    }
+    /* Style for the keywords input (full width) */
+    .search-form input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    /* Style for the bottom row (price range, sort-by, and search button) */
+    .search-form .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    /* Style for the price range container */
+    .price-range {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #505B6A;
+    }
+    .price-range label {
+      font-size: 1rem;
+    }
+    .price-range input[type="number"] {
+      width: 80px;
+    }
+    /* Style for the price and sort-by container */
+    .price-sort-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    /* Style for the sort-by dropdown */
+    .search-form select {
+      width: 150px;
+    }
+    /* Style for the search button */
+    .search-form button {
+      background: none;
+      border: none;
+      color: #505B6A;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .search-form button:hover {
+      color: #B9D452;
+    }
+    /* Style for the search summary */
+    .search-summary {
+      color: #505B6A;
+      background-color: #e9f7fe;
+      padding: 0.75rem;
+      border-radius: 5px;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    /* Style for links (used for category links and View Details) */
+    a {
+      color: #505B6A;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    a:hover {
+      color: #B9D452;
+    }
+    /* Style for category header */
+    .category-header {
+      color: #505B6A;
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    /* Style for category list container */
+    .category-list-container {
+      background-color: #BEC3CC;
+      border-radius: 5px;
+      padding: 1rem;
+    }
+    /* Style for category list */
+    .category-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .category-item {
+      margin-bottom: 0.5rem;
+    }
+    .category-item a {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem;
+      color: #505B6A;
+      flex: 1;
+    }
+    .category-item .subcategory-list {
+      list-style: none;
+      padding-left: 1rem;
+      display: none;
+    }
+    .category-item input[type="checkbox"] {
+      display: none;
+    }
+    .category-item input[type="checkbox"]:checked ~ .subcategory-list {
+      display: block;
+    }
+    .category-item .arrow {
+      margin-left: auto;
+      transition: transform 0.3s ease;
+    }
+    .category-item input[type="checkbox"]:checked ~ .arrow {
+      transform: rotate(90deg);
+    }
+    .category-item label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      width: 100%;
+    }
+    /* Style for product list */
+    .product-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .product-card {
+      background-color: #f9f9f9;
+      padding: 1rem;
+      border: 2px solid #B9D452;
+      border-radius: 5px;
+      width: calc(33.33% - 1rem);
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .product-card h3 {
+      color: #505B6A;
+      font-size: 1.25rem;
+      margin: 0 0 0.5rem;
+    }
+    .product-card p {
+      color: #505B6A;
+      font-size: 0.9rem;
+      margin: 0.25rem 0;
+    }
+    .product-card .seller-info {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    /* Style for no-results message */
+    .no-results {
+      color: #505B6A;
+      text-align: center;
+      font-size: 1.1rem;
+      margin: 2rem 0;
+    }
+    .subcategory-item {
+  margin-left: 1rem;
+  margin-bottom: 0.5rem;
+}
+.subcategory-item a {
+  color: #505B6A;
+  padding: 0.5rem;
+}
+.subcategory-item a:hover {
+  color: #B9D452;
+}
+.back-button {
+  margin-top: 1rem;
+  text-align: center;
+}
+.back-button a {
+  color: #505B6A;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #BEC3CC;
+  border-radius: 3px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.back-button a:hover {
+  background-color: #BEC3CC;
+  color: #B9D452;
+}
+  </style>
+</head>
+<body>
+  <!-- Top navigation bar -->
+  <nav class="top-bar">
+    <div class="user-greeting">
+      Hello, {{ email }}
+    </div>
+    <div class="icons">
+      <a href="{{ url_for('orders') }}" title="Shopping Cart">🛒</a>
+      <a href="{{ url_for('orders') }}" title="View Orders to Review">📄</a>
+      <a href="{{ url_for('profile') }}" title="Profile Settings">⚙️</a>
+    </div>
+  </nav>
+
+  <!-- Main content area -->
+  <div class="container">
+    <!-- Main content (search and results) -->
+    <div class="main-content">
+      <h1>Nittany Business</h1>
+
+      <!-- Search form -->
+      <div class="search-form">
+        <form method="get" action="{{ url_for('buyer_home') }}">
+          <!-- Top row: Keywords input only -->
+          <div class="search-row">
+            <input type="text" id="keywords" name="keywords" placeholder="Search products..." value="{{ request.args.get('keywords', '') }}">
+          </div>
+          <!-- Bottom row: Price range, sort-by, and search button -->
+          <div class="controls-row">
+            <div class="price-sort-container">
+              <div class="price-range">
+                <label>Price:</label>
+                <input type="number" id="min_price" name="min_price" placeholder="Min" min="0" step="0.01" value="{{ request.args.get('min_price', '') }}">
+                <label>to</label>
+                <input type="number" id="max_price" name="max_price" placeholder="Max" min="0" step="0.01" value="{{ request.args.get('max_price', '') }}">
+              </div>
+              <select id="sort_by" name="sort_by">
+                <option value="relevance" {% if request.args.get('sort_by') == 'relevance' %}selected{% endif %}>Relevance</option>
+                <option value="price_low_high" {% if request.args.get('sort_by') == 'price_low_high' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_high_low" {% if request.args.get('sort_by') == 'price_high_low' %}selected{% endif %}>Price: High to Low</option>
+              </select>
+            </div>
+            <button type="submit">Search</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Content wrapper for sidebar and results -->
+    <div class="content-wrapper">
+     <!-- Sidebar for categories -->
+<div class="sidebar">
+  <div class="category-header">Category</div>
+  <div class="category-list-container">
+    <!-- Display the current category as the header -->
+    {% set current_category = path[-1] %}
+    {% set subcategories = get_subcategories(current_category) %}
+    <ul class="category-list">
+      <li class="category-item">
+        <a href="{{ url_for('buyer_home', category=current_category, path=path + [current_category] if not subcategories else path, keywords=request.args.get('keywords', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', ''), sort_by=request.args.get('sort_by', 'relevance')) }}">
+          {{ current_category }}
+        </a>
+      </li>
+      <!-- Display subcategories if they exist, indented -->
+      {% if subcategories %}
+        {% for subcategory in subcategories %}
+          <li class="subcategory-item">
+            <a href="{{ url_for('buyer_home', category=subcategory, path=path + [subcategory], keywords=request.args.get('keywords', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', ''), sort_by=request.args.get('sort_by', 'relevance')) }}">
+              {{ subcategory }}
+            </a>
+          </li>
+        {% endfor %}
+      {% endif %}
+    </ul>
+    <!-- Back button, hidden in initial state -->
+    {% if path|length > 1 or (path|length == 1 and subcategories) %}
+      <div class="back-button">
+        <a href="{{ url_for('buyer_home', category=path[-2] if path|length > 1 else 'All', path=path[:-1] if path|length > 1 else ['All'], keywords=request.args.get('keywords', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', ''), sort_by=request.args.get('sort_by', 'relevance')) }}">
+          Back
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+      <!-- Results section -->
+      <div class="main-content">
+        <!-- Display search results if a search was performed -->
+        {% if search_performed %}
+          <div class="search-summary">
+            {% if products %}
+              Found {{ products|length }} product(s) matching your search criteria.
+            {% else %}
+              No products found matching your search criteria.
+            {% endif %}
+          </div>
+          <div class="section-header">Search Results</div>
+          {% if products %}
+            <div class="product-list">
+              {% for product in products %}
+                <div class="product-card">
+                  <h3>{{ product[3] }} - {{ product[4] }}</h3>
+                  <p>{{ product[5]|truncate(100) }}</p>
+                  <p><strong>Price:</strong> ${{ product[7] }}</p>
+                  <p class="seller-info">Seller: {{ product[0] }}</p>
+                  <a href="{{ url_for('product_detail', seller_email=product[0], listing_id=product[1]) }}">View Details</a>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="no-results">No products found matching your search criteria.</p>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
