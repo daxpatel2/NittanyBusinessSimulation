@@ -71,8 +71,9 @@
 <body>
   <div class="profile-container">
     <h2>My Profile</h2>
-    <form method="post" action="{{ url_for('profile') }}">
+    <input method="post" action="{{ url_for('profile') }}">
       <label>Email (cannot change):</label>
+        <input type="email" id="email" name="email" value="{{ email }}" disabled>
 
       <label>New Password <small>(leave blank to keep current)</small>:</label>
       <input type="password" name="new_password">
@@ -92,6 +93,7 @@
         </ul>
       {% endif %}
     {% endwith %}
+  <a href="{{ url_for(session['role']) }}" class="btn-back">Back to Dashboard</a>
   </div>
 </body>
 </html>
