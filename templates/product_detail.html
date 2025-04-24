@@ -1,109 +1,193 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Product Detail</title>
-    <style>/* general style for page*/
-      body {
-        font-family: Arial, sans-serif;
-        background: #f2f2f2;
-        margin: 0;
-        padding: 0;
-      }
-      /* container style*/
-      .container {
-        background: #fff;
-        padding: 20px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        max-width: 600px;
-        margin: 40px auto;
-      }
-      /* card general style*/
-      .card {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        margin-bottom: 20px;
-      }
-      /* card header style*/
-      .card-header {
-        background: #f7f7f7;
-        padding: 10px;
-        font-weight: bold;
-      }
-      /* card body style*/
-      .card-body {
-        padding: 10px;
-      }
-      /* button style*/
-      .btn {
-        display: inline-block;
-        padding: 10px 15px;
-        background: #007bff;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 3px;
-        transition: background 0.3s ease;
-        margin-right: 10px;
-      }
-      .btn:hover {
-        background: #0056b3;
-      }
-      /* back button style*/
-      .btn-back {
-        display: inline-block;
-        padding: 10px 15px;
-        background: #6c757d;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 3px;
-        transition: background 0.3s ease;
-      }
-      .btn-back:hover {
-        background: #5a6268;
-      }
-    </style>
-  </head>
-  <body>
-	  <!-- main section of page: contains information about a product-->
-    <div class="container">
-      <h1>Product Detail</h1>
-      {% if product %}
-        <div class="card">
-          <div class="card-header">
-            Product: {{ product[3] }}
-          </div>
-	  <!-- basic product information-->
-          <div class="card-body">
-            <h5 class="card-title">{{ product[4] }}</h5>
-            <p class="card-text">{{ product[5] }}</p>
-            <p><strong>Price:</strong> ${{ product[7] }}</p>
-            <p><strong>Available quantity:</strong> {{ product[6] }}</p>
-	    <!-- check status of product (whether there is quantity or not)-->
-            <p>
-              <strong>Status:</strong>
-              {% if product[8] == 1 %}Active
-              {% elif product[8] == 0 %}Inactive
-              {% else %}Sold
-              {% endif %}
-            </p>
-            <p><strong>Category:</strong> {{ product[2] }}</p>
-            <p><strong>Seller Email:</strong> {{ product[0] }}</p>
-            <p>
-              <strong>Seller Average Rating:</strong>
-              {% if avg_rating is not none %}
-                {{ avg_rating }} / 5
-              {% else %}
-                n/a
-              {% endif %}
-            </p>
-            <a href="{{ url_for('order_form', seller_email=product[0], listing_id=product[1]) }}" class="btn">Buy</a>
-          </div>
-        </div>
-      {% else %}
-        <p>Product Not Found</p>
-      {% endif %}
-      <a href="{{ url_for('categories') }}?parent=All" class="btn-back">Back to categories</a>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Detail - Nittany Business</title>
+  <style>
+    /* General style for the page */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #DFE7F2;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    /* Style for the top navigation bar */
+    .top-bar {
+      background-color: #BEC3CC;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    /* Style for the user greeting on the left */
+    .top-bar .user-greeting {
+      color: #505B6A;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    /* Style for the icons container on the right */
+    .top-bar .icons {
+      display: flex;
+      gap: 1.5rem;
+    }
+    /* Style for icon links */
+    .top-bar .icons a {
+      color: #505B6A;
+      font-size: 1.5rem;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    /* Hover effect for icon links */
+    .top-bar .icons a:hover {
+      color: #B9D452;
+    }
+    /* Style for the main content area */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+    /* Style for the page header */
+    h1 {
+      color: #505B6A;
+      font-size: 2.5rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    /* Style for section headers */
+    .section-header {
+      color: #505B6A;
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+    /* Style for links (used for "Buy" and "Back to categories") */
+    a {
+      color: #505B6A;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    a:hover {
+      color: #B9D452;
+    }
+    /* Style for the product card */
+    .product-card {
+      background-color: #f9f9f9;
+      padding: 1rem;
+      border: 2px solid #B9D452;
+      border-radius: 5px;
+      box-sizing: border-box;
+      text-align: center;
+      margin: 0 auto;
+      max-width: 600px;
+    }
+    .product-card h3 {
+      color: #505B6A;
+      font-size: 1.25rem;
+      margin: 0 0 0.5rem;
+    }
+    .product-card p {
+      color: #505B6A;
+      font-size: 0.9rem;
+      margin: 0.25rem 0;
+    }
+    .product-card .seller-info {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    /* Style for the "Buy" button */
+    .btn-buy {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border: 1px solid #BEC3CC;
+      border-radius: 3px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      margin-right: 0.5rem;
+    }
+    .btn-buy:hover {
+      background-color: #BEC3CC;
+      color: #B9D452;
+    }
+    /* Style for the "Back to categories" button */
+    .btn-back {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border: 1px solid #BEC3CC;
+      border-radius: 3px;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      margin-top: 1rem;
+    }
+    .btn-back:hover {
+      background-color: #BEC3CC;
+      color: #B9D452;
+    }
+    /* Style for no-product message */
+    .no-product {
+      color: #505B6A;
+      text-align: center;
+      font-size: 1.1rem;
+      margin: 2rem 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top navigation bar -->
+  <nav class="top-bar">
+    <div class="user-greeting">
+      Hello, {{ email }}
     </div>
-  </body>
+    <div class="icons">
+      <a href="{{ url_for('orders') }}" title="Shopping Cart">🛒</a>
+      <a href="{{ url_for('orders') }}" title="View Orders to Review">📄</a>
+      <a href="{{ url_for('profile') }}" title="Profile Settings">⚙️</a>
+    </div>
+  </nav>
+
+  <!-- Main content area -->
+  <div class="container">
+    <h1>Product Detail</h1>
+
+    {% if product %}
+      <div class="product-card">
+        <h3>{{ product[3] }} - {{ product[4] }}</h3>
+        <p>{{ product[5] }}</p>
+        <p><strong>Price:</strong> ${{ product[7] }}</p>
+        <p><strong>Available quantity:</strong> {{ product[6] }}</p>
+        <p>
+          <strong>Status:</strong>
+          {% if product[8] == 1 %}Active
+          {% elif product[8] == 0 %}Inactive
+          {% else %}Sold
+          {% endif %}
+        </p>
+        <p><strong>Category:</strong> {{ product[2] }}</p>
+        <p class="seller-info"><strong>Seller Email:</strong> {{ product[0] }}</p>
+        <p>
+          <strong>Seller Average Rating:</strong>
+          {% if avg_rating is not none %}
+            {{ avg_rating }} / 5
+          {% else %}
+            n/a
+          {% endif %}
+        </p>
+        <a href="{{ url_for('order_form', seller_email=product[0], listing_id=product[1]) }}" class="btn-buy">Buy</a>
+      </div>
+    {% else %}
+      <p class="no-product">Product Not Found</p>
+    {% endif %}
+
+    <div style="text-align: center;">
+      <a href="{{ url_for('buyer_home', path=['All']) }}" class="btn-back">Back to categories</a>
+    </div>
+  </div>
+
+  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'935390fc390bb04c',t:'MTc0NTQ3NjM3Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
 </html>

@@ -360,7 +360,7 @@
       {% endif %}
     </ul>
     <!-- Back button, hidden in initial state -->
-    {% if path|length > 1 or (path|length == 1 and subcategories) %}
+    {% if path|length > 1 %}
       <div class="back-button">
         <a href="{{ url_for('buyer_home', category=path[-2] if path|length > 1 else 'All', path=path[:-1] if path|length > 1 else ['All'], keywords=request.args.get('keywords', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', ''), sort_by=request.args.get('sort_by', 'relevance')) }}">
           Back

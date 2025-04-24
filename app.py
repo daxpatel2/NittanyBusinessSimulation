@@ -363,6 +363,11 @@ def profile():
 
 @app.route('/product/<seller_email>/<int:listing_id>')
 def product_detail(seller_email, listing_id):
+    if session.get('role') != 'buyer':
+        return redirect(url_for('home_page'))
+    email = session.get('email')
+    if not email:
+        return redirect(url_for('home_page'))
     product = get_product_details(seller_email, listing_id)
     if product is None:
         flash("product not found")
@@ -370,6 +375,7 @@ def product_detail(seller_email, listing_id):
     avg_rating = get_seller_average_rating(seller_email)
     return render_template(
         'product_detail.html',
+        email=email,
         product=product,
         avg_rating=avg_rating
     )

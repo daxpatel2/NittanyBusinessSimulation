@@ -1007,7 +1007,7 @@ def search_products(
     # Add category filter if provided and not "All"
     if category and category != "All":
         query += " AND p.category = %s"
-        Ziemi.append(category)
+        params.append(category)
 
     # Add keyword search if provided
     if keywords and keywords.strip():
