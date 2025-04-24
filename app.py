@@ -6,7 +6,6 @@ from database_queries import *
 app = Flask(__name__)
 app.secret_key = "your_secret_key_here"  # needed for session management and flashing
 
-
 @app.route('/', methods=['GET', 'POST'])
 def mainpage():
     message = None
@@ -128,7 +127,37 @@ def seller():
 def helpdesk():
     if session.get('role') != 'helpdesk':
         return redirect(url_for('mainpage'))
-    return render_template('helpdesk_staff.html', email=session['email'])
+    email = session.get('email')
+    if not email:
+        return redirect(url_for('mainpage'))
+    return render_template('helpdesk_home.html', email=email)
+
+@app.route('/helpdesk/pending_requests')
+def pending_requests():
+    if session.get('role') != 'helpdesk':
+        return redirect(url_for('mainpage'))
+    email = session.get('email')
+    if not email:
+        return redirect(url_for('mainpage'))
+    return render_template('pending_requests.html', email=email)
+
+@app.route('/helpdesk/user_management')
+def user_management():
+    if session.get('role') != 'helpdesk':
+        return redirect(url_for('mainpage'))
+    email = session.get('email')
+    if not email:
+        return redirect(url_for('mainpage'))
+    return render_template('user_management.html', email=email)
+
+@app.route('/helpdesk/system_admin')
+def system_admin():
+    if session.get('role') != 'helpdesk':
+        return redirect(url_for('mainpage'))
+    email = session.get('email')
+    if not email:
+        return redirect(url_for('mainpage'))
+    return render_template('system_admin.html', email=email)
 
 @app.route('/seller/listings')
 def manage_listings():
@@ -183,7 +212,6 @@ def remove_listing(listing_id):
           "warning" if success else "danger")
     return redirect(url_for('manage_listings'))
 
-
 @app.route('/order/<seller_email>/<int:listing_id>', methods=['GET','POST'])
 def order_form(seller_email, listing_id):
     buyer = session.get('email')
@@ -216,8 +244,6 @@ def order_form(seller_email, listing_id):
         product=prod,
         cards=cards
     )
-
-
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -320,7 +346,6 @@ def product_detail(seller_email, listing_id):
         avg_rating=avg_rating
     )
 
-# Route for buyers to submit reviews on their orders
 @app.route('/review/<int:order_id>', methods=['GET','POST'])
 def review(order_id):
     # only buyers may review
@@ -353,6 +378,14 @@ def review(order_id):
     return render_template('review_form.html',
                            order_id=order_id,
                            product_label=product_label)
+@app.route('/buyer/shopping_cart')
+def shopping_cart():
+    if session.get('role') != 'buyer':
+        return redirect(url_for('mainpage'))
+    email = session.get('email')
+    if not email:
+        return redirect(url_for('mainpage'))
+    return render_template('shopping_cart.html', email=email)
 
 
 @app.route('/orders')
@@ -371,7 +404,6 @@ def orders():
             avg = None
         orders_with_rating.append((*order, avg))
     return render_template('orders.html', orders=orders_with_rating)
-
 
 if __name__ == '__main__':
     app.run(debug=True)

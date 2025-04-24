@@ -981,6 +981,47 @@ def get_seller_average_rating(seller_email: str) -> Optional[float]:
     conn.close()  # close connection
     return float(result) if result is not None else None  # return average or None
 
+def get_all_subcategories(category: str) -> list:
+    """
+    Recursively fetch all subcategories (including the input category) for a given category.
+    Returns a list of category names.
+    """
+    conn, cursor = connect()
+    if conn is None or cursor is None:
+        return [category] if category != "All" else []
+
+    # Use a recursive CTE to fetch all subcategories
+    query = """
+        WITH RECURSIVE category_tree AS (
+            -- Base case: select the provided category (if it exists in categories)
+            SELECT category_name
+            FROM categories
+            WHERE category_name = %s
+            UNION ALL
+            -- Recursive case: select subcategories of categories already in the tree
+            SELECT c.category_name
+            FROM categories c
+            INNER JOIN category_tree ct ON c.parent_category = ct.category_name
+        )
+        SELECT category_name FROM category_tree
+    """
+    try:
+        # If category is "All", fetch all categories under "Root"
+        if category == "All":
+            cursor.execute(
+                "SELECT category_name FROM categories WHERE parent_category = %s",
+                ("Root",)
+            )
+        else:
+            cursor.execute(query, (category,))
+        results = cursor.fetchall()
+        return [row[0] for row in results]
+    except Exception as e:
+        print(f"Error fetching subcategories for {category}: {e}")
+        return [category]  # Fallback to just the input category
+    finally:
+        cursor.close()
+        conn.close()
 
 def search_products(
         keywords=None,
@@ -992,9 +1033,12 @@ def search_products(
     if conn is None or cursor is None:
         return []
 
+    # Fetch all relevant categories (including subcategories)
+    categories = get_all_subcategories(category) if category else []
+
     # Start building the query
     query = """
-        SELECT p.seller_email, p.listing_id, p.category, p.product_title, 
+        SELECT p.seller_email, p.listing_id, p.category, p.product_title,
                p.product_name, p.product_description, p.quantity, p.product_price, p.status,
                s.business_name as seller_name
         FROM product_listings p
@@ -1005,31 +1049,28 @@ def search_products(
     params = []
 
     # Add category filter if provided and not "All"
-    if category and category != "All":
-        query += " AND p.category = %s"
-        params.append(category)
+    if categories and category != "All":
+        # Use IN clause to match any of the categories (including subcategories)
+        placeholders = ", ".join(["%s"] * len(categories))
+        query += f" AND p.category IN ({placeholders})"
+        params.extend(categories)
 
     # Add keyword search if provided
     if keywords and keywords.strip():
-        # Split keywords into individual terms
         keyword_terms = keywords.strip().split()
         keyword_conditions = []
 
         for term in keyword_terms:
-            # Create ILIKE condition for each searchable field
-            # ILIKE is used for case-insensitive matching
             term_with_wildcards = f"%{term}%"
             keyword_conditions.append("""
-                (p.product_title ILIKE %s OR 
-                 p.product_name ILIKE %s OR 
-                 p.product_description ILIKE %s OR 
-                 p.category ILIKE %s OR 
+                (p.product_title ILIKE %s OR
+                 p.product_name ILIKE %s OR
+                 p.product_description ILIKE %s OR
+                 p.category ILIKE %s OR
                  s.business_name ILIKE %s)
             """)
-            # Add the parameter 5 times for each field in the condition
             params.extend([term_with_wildcards] * 5)
 
-        # Join all keyword conditions with OR
         if keyword_conditions:
             query += " AND (" + " OR ".join(keyword_conditions) + ")"
 
@@ -1048,11 +1089,7 @@ def search_products(
     elif sort_by == "price_high_low":
         query += " ORDER BY p.product_price DESC"
     else:  # Default to relevance
-        # For relevance sorting, if keywords are provided, we can use a relevance score
-        # Otherwise, just sort by listing_id
         if keywords and keywords.strip():
-            # This is a simple relevance implementation
-            # In a real system, you might use more sophisticated scoring
             query += " ORDER BY p.listing_id DESC"
         else:
             query += " ORDER BY p.listing_id DESC"
@@ -1067,6 +1104,8 @@ def search_products(
     finally:
         cursor.close()
         conn.close()
+
+    
 
 if __name__ == '__main__':
     create_tables()
