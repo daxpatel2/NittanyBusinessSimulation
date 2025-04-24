@@ -8,7 +8,7 @@ app.secret_key = "your_secret_key_here"  # needed for session management and fla
 
 
 @app.route('/', methods=['GET', 'POST'])
-def home_page():
+def mainpage():
     message = None
     if request.method == 'POST':
         email = request.form['email']
@@ -76,21 +76,21 @@ def register():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('home_page'))
+    return redirect(url_for('mainpage'))
 
 @app.route('/buyer')
 def buyer():
     if session.get('role') != 'buyer':
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     return redirect(url_for('buyer_home'))
 
 @app.route('/buyer_home')
 def buyer_home():
     if session.get('role') != 'buyer':
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     email = session.get('email')
     if not email:
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
 
     # Handle search form submission and category selection
     keywords = request.args.get('keywords', '')
@@ -121,19 +121,19 @@ def buyer_home():
 @app.route('/seller')
 def seller():
     if session.get('role') != 'seller':
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     return render_template('sellers.html', email=session['email'])
 
 @app.route('/helpdesk')
 def helpdesk():
     if session.get('role') != 'helpdesk':
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     return render_template('helpdesk_staff.html', email=session['email'])
 
 @app.route('/seller/listings')
 def manage_listings():
     if session.get('role') != 'seller':
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     seller_email = session['email']
     listings = get_listings_by_seller(seller_email)
     return render_template('seller_listings.html', listings=listings)
@@ -141,7 +141,7 @@ def manage_listings():
 @app.route('/seller/listings/new', methods=['GET','POST'])
 def new_listing():
     if session.get('role') != 'seller':
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     if request.method == 'POST':
         data = request.form
         success = insert_product_listing(
@@ -158,7 +158,7 @@ def new_listing():
 @app.route('/seller/listings/edit/<int:listing_id>', methods=['GET','POST'])
 def edit_listing(listing_id):
     if session.get('role') != 'seller':
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     email = session['email']
     if request.method == 'POST':
         data = request.form
@@ -177,7 +177,7 @@ def edit_listing(listing_id):
 @app.route('/seller/listings/remove/<int:listing_id>')
 def remove_listing(listing_id):
     if session.get('role') != 'seller':
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     success = set_listing_status(session['email'], listing_id, 0)
     flash("Listing removed" if success else "Error removing listing",
           "warning" if success else "danger")
@@ -188,7 +188,7 @@ def remove_listing(listing_id):
 def order_form(seller_email, listing_id):
     buyer = session.get('email')
     if session.get('role')!='buyer' or not buyer:
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     prod = get_product_details(seller_email, listing_id)
     if not prod:
         flash("product not found", "danger")
@@ -225,7 +225,7 @@ def profile():
     email = session.get('email')
     if not email:
         flash("Please log in to access your profile.", "error")
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
 
     # Fetch current profile info (excluding password!)
     conn, cursor = connect()
@@ -304,10 +304,10 @@ def profile():
 @app.route('/product/<seller_email>/<int:listing_id>')
 def product_detail(seller_email, listing_id):
     if session.get('role') != 'buyer':
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     email = session.get('email')
     if not email:
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     product = get_product_details(seller_email, listing_id)
     if product is None:
         flash("product not found")
@@ -325,7 +325,7 @@ def product_detail(seller_email, listing_id):
 def review(order_id):
     # only buyers may review
     if session.get('role') != 'buyer':
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
 
     buyer = session['email']
     # get all orders for this buyer
@@ -359,7 +359,7 @@ def review(order_id):
 def orders():
     buyer = session.get('email')
     if session.get('role') != 'buyer' or not buyer:
-        return redirect(url_for('home_page'))
+        return redirect(url_for('mainpage'))
     raw_orders = get_orders_by_buyer(buyer)
     orders_with_rating = []
     for order in raw_orders:

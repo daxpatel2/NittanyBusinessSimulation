@@ -93,6 +93,27 @@
       text-align: center;
       font-size: 1.1rem;
     }
+    /* Style for flash messages */
+.flashes {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  text-align: center;
+}
+.flashes li {
+  color: #505B6A;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+}
+.flashes .success {
+  color: #B9D452;
+}
+.flashes .error {
+  color: #ff4d4d;
+}
+.flashes .info {
+  color: #505B6A;
+}
   </style>
 </head>
 <body>
@@ -167,6 +188,15 @@
     {% else %}
       <p class="no-orders">You have no past orders.</p>
     {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flashes">
+        {% for category, msg in messages %}
+          <li class="{{ category }}">{{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
     <!-- Back button to go to the buyer dashboard -->
     <a href="{{ url_for('buyer') }}">Back to dashboard</a>
   </div>

@@ -186,6 +186,7 @@
       list-style: none;
       padding: 0;
       margin: 0;
+      width: 100%;
     }
     .category-item {
       margin-bottom: 0.5rem;
@@ -219,7 +220,7 @@
       display: flex;
       align-items: center;
       cursor: pointer;
-      width: 100%;
+      width: 100;
     }
     /* Style for product list */
     .product-list {
@@ -258,32 +259,29 @@
       margin: 2rem 0;
     }
     .subcategory-item {
-  margin-left: 1rem;
-  margin-bottom: 0.5rem;
-}
-.subcategory-item a {
-  color: #505B6A;
-  padding: 0.5rem;
-}
-.subcategory-item a:hover {
-  color: #B9D452;
-}
-.back-button {
-  margin-top: 1rem;
-  text-align: center;
-}
-.back-button a {
-  color: #505B6A;
-  font-size: 1rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid #BEC3CC;
-  border-radius: 3px;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-.back-button a:hover {
-  background-color: #BEC3CC;
-  color: #B9D452;
-}
+      margin-left: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .subcategory-item a {
+      color: #505B6A;
+      padding: 0.5rem;
+    }
+    .subcategory-item a:hover {
+      color: #B9D452;
+    }
+    .back-button {
+      margin-top: 1rem;
+      text-align: right;
+    }
+    .back-button a {
+      color: #505B6A;
+      font-size: 1rem;
+      padding: 0.5rem;
+      transition: color 0.3s ease;
+    }
+    .back-button a:hover {
+      color: #B9D452;
+    }
   </style>
 </head>
 <body>
@@ -335,40 +333,40 @@
 
     <!-- Content wrapper for sidebar and results -->
     <div class="content-wrapper">
-     <!-- Sidebar for categories -->
-<div class="sidebar">
-  <div class="category-header">Category</div>
-  <div class="category-list-container">
-    <!-- Display the current category as the header -->
-    {% set current_category = path[-1] %}
-    {% set subcategories = get_subcategories(current_category) %}
-    <ul class="category-list">
-      <li class="category-item">
-        <a href="{{ url_for('buyer_home', category=current_category, path=path + [current_category] if not subcategories else path, keywords=request.args.get('keywords', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', ''), sort_by=request.args.get('sort_by', 'relevance')) }}">
-          {{ current_category }}
-        </a>
-      </li>
-      <!-- Display subcategories if they exist, indented -->
-      {% if subcategories %}
-        {% for subcategory in subcategories %}
-          <li class="subcategory-item">
-            <a href="{{ url_for('buyer_home', category=subcategory, path=path + [subcategory], keywords=request.args.get('keywords', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', ''), sort_by=request.args.get('sort_by', 'relevance')) }}">
-              {{ subcategory }}
-            </a>
-          </li>
-        {% endfor %}
-      {% endif %}
-    </ul>
-    <!-- Back button, hidden in initial state -->
-    {% if path|length > 1 %}
-      <div class="back-button">
-        <a href="{{ url_for('buyer_home', category=path[-2] if path|length > 1 else 'All', path=path[:-1] if path|length > 1 else ['All'], keywords=request.args.get('keywords', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', ''), sort_by=request.args.get('sort_by', 'relevance')) }}">
-          Back
-        </a>
+      <!-- Sidebar for categories -->
+      <div class="sidebar">
+        <div class="category-header">Category</div>
+        <div class="category-list-container">
+          <!-- Display the current category as the header -->
+          {% set current_category = path[-1] %}
+          {% set subcategories = get_subcategories(current_category) %}
+          <ul class="category-list">
+            <li class="category-item">
+              <a href="{{ url_for('buyer_home', category=current_category, path=path + [current_category] if not subcategories else path, keywords=request.args.get('keywords', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', ''), sort_by=request.args.get('sort_by', 'relevance')) }}">
+                {{ current_category }}
+              </a>
+            </li>
+            <!-- Display subcategories if they exist, indented -->
+            {% if subcategories %}
+              {% for subcategory in subcategories %}
+                <li class="subcategory-item">
+                  <a href="{{ url_for('buyer_home', category=subcategory, path=path + [subcategory], keywords=request.args.get('keywords', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', ''), sort_by=request.args.get('sort_by', 'relevance')) }}">
+                    {{ subcategory }}
+                  </a>
+                </li>
+              {% endfor %}
+            {% endif %}
+          </ul>
+          <!-- Back button, hidden in initial state -->
+          {% if path|length > 1 %}
+            <div class="back-button">
+              <a href="{{ url_for('buyer_home', category=path[-2] if path|length > 1 else 'All', path=path[:-1] if path|length > 1 else ['All'], keywords=request.args.get('keywords', ''), min_price=request.args.get('min_price', ''), max_price=request.args.get('max_price', ''), sort_by=request.args.get('sort_by', 'relevance')) }}">
+                Back
+              </a>
+            </div>
+          {% endif %}
+        </div>
       </div>
-    {% endif %}
-  </div>
-</div>
       <!-- Results section -->
       <div class="main-content">
         <!-- Display search results if a search was performed -->
@@ -400,5 +398,6 @@
       </div>
     </div>
   </div>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'935616205f5fbd0c',t:'MTc0NTUwMjgwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

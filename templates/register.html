@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- Ensure responsiveness on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Register Page</title>
-  <!-- Styles for the register page, matching the login page -->
   <style>
     /* General style for the page */
     body {
@@ -18,12 +16,12 @@
       align-items: center;
       height: 100vh;
     }
-    /* Style for the register container */
+    /* Style for the register container, matching product card */
     .register-container {
-      background-color: #FFFFFF;
+      background-color: #f9f9f9;
       padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      border: 2px solid #B9D452;
+      border-radius: 5px;
       width: 100%;
       max-width: 350px;
       text-align: center;
@@ -41,8 +39,7 @@
       flex-direction: column;
       gap: 1rem;
     }
-    /* Style for text, email, and password inputs */
-    .register-container input[type="text"],
+    /* Style for email and password inputs */
     .register-container input[type="email"],
     .register-container input[type="password"] {
       padding: 0.75rem;
@@ -52,7 +49,6 @@
       background-color: #F9FAFB;
     }
     /* Style for placeholders in inputs */
-    .register-container input[type="text"]::placeholder,
     .register-container input[type="email"]::placeholder,
     .register-container input[type="password"]::placeholder {
       color: #BEC3CC;
@@ -61,7 +57,6 @@
     .register-container select {
       width: 100%;
       padding: 0.75rem;
-      margin-bottom: 0;
       border: 1px solid #BEC3CC;
       border-radius: 5px;
       background-color: #F9FAFB;
@@ -79,24 +74,26 @@
       background-size: 10px;
       color: #505B6A;
     }
-    /* Placeholder text color for select (when no option is selected) */
+    /* Placeholder text color for select */
     .register-container select option[disabled][selected] {
       color: #BEC3CC;
     }
-    /* Style for the register button */
+    /* Style for the register button, non-green to match dialog */
     .register-container button {
       padding: 0.75rem;
-      background-color: #B9D452;
+      background-color: #BEC3CC;
       border: none;
-      color: #FFFFFF;
+      color: #505B6A;
       border-radius: 5px;
       font-size: 1rem;
       font-weight: 500;
       cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     /* Hover effect for the register button */
     .register-container button:hover {
-      background-color: #A3C03A;
+      background-color: #A8AEB7;
+      color: #B9D452;
     }
     /* Style for the switch link section */
     .register-container .switch-link {
@@ -107,18 +104,18 @@
       color: #505B6A;
       text-decoration: none;
       font-size: 0.9rem;
+      transition: color 0.3s ease;
     }
     /* Hover effect for the login link */
     .register-container .switch-link a:hover {
       color: #B9D452;
     }
-    /* Style for the dialog (for messages) */
+    /* Style for the dialog, matching product card */
     dialog {
-      border: none;
+      border: 2px solid #B9D452;
       border-radius: 5px;
       padding: 1.5rem;
-      background-color: #FFFFFF;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      background-color: #f9f9f9;
       max-width: 300px;
       margin: auto;
     }
@@ -135,10 +132,12 @@
       color: #505B6A;
       border-radius: 5px;
       cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     /* Hover effect for the dialog close button */
     dialog button:hover {
       background-color: #A8AEB7;
+      color: #B9D452;
     }
   </style>
 </head>
@@ -148,7 +147,6 @@
     <h2>Register</h2>
     <!-- Basic information about new user -->
     <form method="post" action="{{ url_for('register') }}">
-      <input type="text" name="username" placeholder="Choose a username" required>
       <input type="email" name="email" placeholder="Enter your email" required>
       <input type="password" name="password" placeholder="Create a password" required>
       <input type="password" name="confirm_password" placeholder="Confirm your password" required>
@@ -176,5 +174,6 @@
     </form>
   </dialog>
   {% endif %}
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'935614a8db774593',t:'MTc0NTUwMjcxMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

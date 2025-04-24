@@ -114,6 +114,11 @@
     .back-link {
       margin-top: 1rem;
     }
+    /* Style for the logout link container */
+    .logout-link {
+      margin-top: 1rem;
+      text-align: center;
+    }
     /* Style for flash messages */
     .flashes {
       list-style: none;
@@ -175,6 +180,13 @@
       {% endif %}
     {% endwith %}
 
+    <!-- Logout button -->
+    <div class="logout-link">
+      <a href="{{ url_for('logout') }}">
+        Logout
+      </a>
+    </div>
+
     <!-- Back to dashboard button -->
     <div class="back-link">
       <a href="{% if role == 'buyer' %}{{ url_for('buyer') }}{% elif role == 'seller' %}{{ url_for('seller') }}{% else %}{{ url_for('helpdesk') }}{% endif %}">
@@ -182,5 +194,5 @@
       </a>
     </div>
   </div>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9355f854af8dbcb6',t:'MTc0NTUwMTU4MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

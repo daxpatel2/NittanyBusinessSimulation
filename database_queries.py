@@ -970,7 +970,7 @@ def get_seller_average_rating(seller_email: str) -> Optional[float]:
         return None  # abort if connection fails
     # compute average rating, cast review_desc to integer since columns are swapped
     sql = """
-         SELECT AVG(r.review_desc::integer)::numeric(10,2)
+         SELECT AVG(r.rating::integer)::numeric(10,2)
            FROM reviews r
            JOIN orders o ON r.order_id = o.order_id
           WHERE o.seller_email = %s
