@@ -1,53 +1,165 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head> 
-  <meta charset="utf-8">
-  <title>Submit Review</title>
-  <style> /* setup general style for the webpage */
-    body { font-family: Arial, sans-serif; background: #f9f9f9; }
-    .form-container {
-      background: #fff; max-width: 500px; margin: 50px auto;
-      padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Review - Nittany Business</title>
+  <style>
+    /* General style for the page */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #DFE7F2;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
     }
-    h1 { margin-top: 0; } /* setup header style */
-    label { display: block; margin-top: 1em; } /* setup lable style*/
-    select, textarea { /* setup select and text area style */
-      width: 100%; padding: 8px; margin-top: 4px;
-      border: 1px solid #ccc; border-radius: 4px;
+    /* Style for the top navigation bar */
+    .top-bar {
+      background-color: #BEC3CC;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    /* Style for the user greeting on the left */
+    .top-bar .user-greeting {
+      color: #505B6A;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    /* Style for the icons container on the right */
+    .top-bar .icons {
+      display: flex;
+      gap: 1.5rem;
+    }
+    /* Style for icon links */
+    .top-bar .icons a {
+      color: #505B6A;
+      font-size: 1.5rem;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    /* Hover effect for icon links */
+    .top-bar .icons a:hover {
+      color: #B9D452;
+    }
+    /* Style for the main content area */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: center;
+    }
+    /* Style for the form container */
+    .form-container {
+      background-color: #f9f9f9;
+      padding: 1rem;
+      border: 2px solid #B9D452;
+      border-radius: 5px;
+      box-sizing: border-box;
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+    }
+    /* Style for the page header */
+    h1 {
+      color: #505B6A;
+      font-size: 2.5rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    /* Style for product label */
+    .form-container p {
+      color: #505B6A;
+      font-size: 1rem;
+      margin: 0.5rem 0;
+    }
+    /* Style for form fields */
+    label {
+      display: block;
+      color: #505B6A;
+      font-size: 1rem;
+      margin-top: 1em;
+      margin-bottom: 0.25rem;
+      font-weight: bold;
+      text-align: left;
+    }
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #BEC3CC;
+      border-radius: 3px;
+      font-size: 1rem;
+      color: #505B6A;
       box-sizing: border-box;
     }
-    .btn { /* button style */
-      display: inline-block; margin-top: 1.5em;
-      padding: 8px 16px; text-decoration: none;
-      background: #007bff; color: #fff; border: none;
-      border-radius: 4px; cursor: pointer;
+    textarea {
+      resize: vertical;
     }
-    .btn-secondary { /* second button style */
-      background: #6c757d;
-      margin-left: 10px;
+    /* Style for buttons */
+    .btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border: 1px solid #BEC3CC;
+      border-radius: 3px;
+      background: none;
+      color: #505B6A;
+      font-size: 1rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      margin-top: 1.5em;
+    }
+    .btn:hover {
+      background-color: #BEC3CC;
+      color: #B9D452;
+    }
+    .btn-secondary {
+      margin-left: 0.5rem;
     }
   </style>
 </head>
 <body>
-	<!-- main section of webpage: contains a form container for users woh want to submit a review of a product-->
-  <div class="form-container">
-    <h1>Review Order #{{ order_id }}</h1>
-    <p><strong>Product:</strong> {{ product_label }}</p>
-    <form method="post">
-      <label for="rating">Rating</label>
-      <select name="rating" id="rating" required>
-        <option value="">— Select —</option>
-        {% for i in range(1,6) %}
-          <option value="{{ i }}">{{ i }}</option>
-        {% endfor %}
-      </select>
+  <!-- Top navigation bar -->
+  <nav class="top-bar">
+    <div class="user-greeting">
+      Hello, {{ session.get('email') }}
+    </div>
+    <div class="icons">
+      <a href="{{ url_for('orders') }}" title="Shopping Cart">🛒</a>
+      <a href="{{ url_for('orders') }}" title="View Orders to Review">📄</a>
+      <a href="{{ url_for('profile') }}" title="Profile Settings">⚙️</a>
+    </div>
+  </nav>
 
-      <label for="review_desc">Review</label>
-      <textarea name="review_desc" id="review_desc" rows="4" required></textarea>
+  <div class="container">
+    <div class="form-container">
+      <h1>Review Order #{{ order_id }}</h1>
+      <p><strong>Product:</strong> {{ product_label }}</p>
+      <form method="post">
+        <label for="rating">Rating</label>
+        <select name="rating" id="rating" required>
+          <option value="">— Select —</option>
+          {% for i in range(1,6) %}
+            <option value="{{ i }}">{{ i }}</option>
+          {% endfor %}
+        </select>
 
-      <button type="submit" class="btn">Submit Review</button>
-      <a href="{{ url_for('orders') }}" class="btn btn-secondary">Cancel</a>
-    </form>
+        <label for="review_desc">Review</label>
+        <textarea name="review_desc" id="review_desc" rows="4" required></textarea>
+
+        <button type="submit" class="btn">Submit Review</button>
+        <a href="{{ url_for('orders') }}" class="btn btn-secondary">Cancel</a>
+      </form>
+    </div>
   </div>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9353bcc3cdb7bfb3',t:'MTc0NTQ3ODE3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

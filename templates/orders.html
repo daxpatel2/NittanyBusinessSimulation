@@ -99,8 +99,8 @@
   <!-- Top navigation bar (consistent with buyer_home.html) -->
   <nav class="top-bar">
     <div class="user-greeting">
-      Hello, {{ session.get('email', 'User') }}
- determin    </div>
+      Hello, {{ session.get('email') }}
+    </div>
     <div class="icons">
       <a href="{{ url_for('orders') }}" title="Shopping Cart">🛒</a>
       <a href="{{ url_for('orders') }}" title="View Orders to Review">📄</a>

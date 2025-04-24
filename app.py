@@ -6,43 +6,6 @@ from database_queries import *
 app = Flask(__name__)
 app.secret_key = "your_secret_key_here"  # needed for session management and flashing
 
-# Function to fix swapped data in the reviews table
-def fix_reviews_table():
-    conn, cursor = connect()
-    if conn is None or cursor is None:
-        print("Failed to connect to database for data migration.")
-        return
-    
-    try:
-        # 1. Add a temporary column to hold the current rating values (which are text)
-        cursor.execute("ALTER TABLE reviews ADD COLUMN IF NOT EXISTS temp_rating TEXT;")
-        
-        # 2. Move current rating values (text like "Awesome") to temp_rating
-        cursor.execute("UPDATE reviews SET temp_rating = rating::TEXT;")
-        
-        # 3. Move review_desc (which contains ratings like "4") to rating, converting to integer
-        cursor.execute("UPDATE reviews SET rating = review_desc::INTEGER;")
-        
-        # 4. Move temp_rating (text like "Awesome") to review_desc
-        cursor.execute("UPDATE reviews SET review_desc = temp_rating;")
-        
-        # 5. Drop the temporary column
-        cursor.execute("ALTER TABLE reviews DROP COLUMN temp_rating;")
-        
-        # 6. Add a constraint to ensure rating is an integer between 0 and 5
-        cursor.execute("""
-            ALTER TABLE reviews
-            ADD CONSTRAINT IF NOT EXISTS rating_range CHECK (rating >= 0 AND rating <= 5);
-        """)
-        
-        conn.commit()
-        print("Successfully fixed reviews table data.")
-    except Exception as e:
-        print(f"Error fixing reviews table: {e}")
-        conn.rollback()
-    finally:
-        cursor.close()
-        conn.close()
 
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
@@ -254,30 +217,7 @@ def order_form(seller_email, listing_id):
         cards=cards
     )
 
-@app.route('/checkout/<seller_email>/<int:listing_id>', methods=['GET','POST'])
-def checkout(seller_email, listing_id):
-    if session.get('role') != 'buyer':
-        return redirect(url_for('home_page'))
-    product = get_product_details(seller_email, listing_id)
-    cards = get_credit_cards_by_buyer(session['email'])
-    if request.method == 'POST':
-        qty = int(request.form['quantity'])
-        cc = request.form['credit_card_num']
-        success = insert_order(
-            seller_email,
-            listing_id,
-            session['email'],
-            qty,
-            cc
-        )
-        if success:
-            flash("Order placed successfully!", "success")
-            return redirect(url_for('orders'))
-        else:
-            flash("Error placing order", "danger")
-    return render_template('checkout.html',
-                           product=product,
-                           cards=cards)
+
 
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -380,29 +320,40 @@ def product_detail(seller_email, listing_id):
         avg_rating=avg_rating
     )
 
+# Route for buyers to submit reviews on their orders
 @app.route('/review/<int:order_id>', methods=['GET','POST'])
 def review(order_id):
+    # only buyers may review
     if session.get('role') != 'buyer':
         return redirect(url_for('home_page'))
+
     buyer = session['email']
+    # get all orders for this buyer
     my_orders = get_orders_by_buyer(buyer)
+    # find matching order tuple
     order = next((o for o in my_orders if o[0] == order_id), None)
     if not order:
         flash("order not found", "danger")
         return redirect(url_for('orders'))
+
+    # extract seller and listing to label the product
     seller_email, listing_id = order[2], order[3]
     product = get_product_details(seller_email, listing_id)
-    product_label = f"{product[3]} – {product[4]}"
+    product_label = f"{product[3]} – {product[4]}"  # "title – name"
+
     if request.method == 'POST':
-        rating = int(request.form['rating'])
-        review_desc = request.form['review_desc']
-        success = insert_review(order_id, review_desc, rating)
+        rating = int(request.form['rating'])  # get rating value
+        review_desc = request.form['review_desc']  # review text
+        success = insert_review(order_id, review_desc, rating)  # upsert review
         flash("Review submitted!" if success else "Error submitting review",
               "success" if success else "danger")
         return redirect(url_for('orders'))
+
+    # GET: show review form
     return render_template('review_form.html',
                            order_id=order_id,
                            product_label=product_label)
+
 
 @app.route('/orders')
 def orders():
@@ -421,9 +372,6 @@ def orders():
         orders_with_rating.append((*order, avg))
     return render_template('orders.html', orders=orders_with_rating)
 
-# Run the data migration when the app starts
-with app.app_context():
-    fix_reviews_table()
 
 if __name__ == '__main__':
     app.run(debug=True)
