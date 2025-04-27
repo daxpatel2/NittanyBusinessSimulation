@@ -63,28 +63,11 @@ Make sure that all CSV files are in the root directory of your project, if not, 
 
 ## Usage
 
-Follow these steps to run the application and test the system:
-
-### 1. Connect to the Database
-To connect to the database (and create it if needed), run the following code:
-```python
-from database_queries import connect
-connect()
-```
-
-### 2. Create the Tables
-Run the `create_tables()` function once to create all tables:
-```python
-from database_queries import create_tables
-create_tables()
-```
-
-### 3. Populate the Tables
-After creating the tables, the data needs to be loaded into the tables. For the Users.csv, the system will automatically hash the passwords using SHA-256 before inserting them into the database. To load the data, use the following code:
+To connect to the database, create the tables, and populate the tables, run the following:
 
 ```python
-from database_queries import populate_all_tables
-populate_all_tables()
+from database_queries import main
+main()
 ```
 
 ### 4. Start the flask server
