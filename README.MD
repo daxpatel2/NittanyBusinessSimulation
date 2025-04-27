@@ -44,9 +44,9 @@ cd NittanyBusinessSimulation
 ### 2. Environment Setup
 Install the required Python packages by running:
 ```bash 
-pip install flask psycopg2-binary
+pip install flask psycopg2-binary pandas
 ```
-### 3. Database Connection 
+### 3. Database Credentials 
 Open the Python file containing the database connection logic (e.g., `database_queries.py`) and update the `connect()` function with your PostgreSQL credentials. Make sure:
 
 (1) PostgreSQL is running.
@@ -55,31 +55,22 @@ Open the Python file containing the database connection logic (e.g., `database_q
 
 If you do not already have PostgreSQL downloaded and setup, download it [here](https://www.postgresql.org/download/). Once downloaded, set up an account, then proceed with the above steps.
 
+#### If using Windows
+If you are on Windows, you may run into additional PATH issues regarding PostgreSQL. If (in later steps) when you try to run the app you run into login issues, this may be the cause. Refer to [this](https://sqlbackupandftp.com/blog/setting-windows-path-for-postgres-tools/) tutorial for help.
+
 ### 4. CSV Data
-Make sure the Users.csv file is in the root directory of your project, if not, move it there. 
-Verify that:
-
-(1) The CSV file contains at least two columns: email and password.
-
-(2) The columns are correctly named exactly as 'email' and 'password' (case-sensitive).
+Make sure that all CSV files are in the root directory of your project, if not, move them there.
 
 ## Usage
 
-Follow these steps to run the application and test the login system:
-
-### 1. Create the Users Table
-Before inserting any data, ensure the `users` table exists in your PostgreSQL database. Run the `create_table()` function once to create it.
-
-### 2. Populate the Users Table
-After creating the table, load user data from the `Users.csv` file. This file should contain user emails and plain-text passwords. The system will automatically hash the passwords using SHA-256 before inserting them into the database.
+To connect to the database, create the tables, and populate the tables, run the following:
 
 ```python
-from database_queries import populate_table
-populate_table()
+from database_queries import main
+main()
 ```
-If there is an issue, make sure the Users.csv file is in the same directory and follows the correct format (email,password) as mentioned above.
 
-### 3. Start the flask server
+### 4. Start the flask server
 To launch the login interface, run the Flask application by executing the following command in your terminal from the project’s root directory:
 
 ```bash
