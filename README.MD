@@ -63,13 +63,13 @@ Make sure that all CSV files are in the root directory of your project, if not, 
 
 ## Usage
 
-To connect to the database, create the tables, and populate the tables, run the following python code:
+To connect to the database, create the tables, and populate the tables, run the following python code in your terminal from the project’s root directory:
 
 ```python
-database_queries.py
+python database_queries.py
 ```
 
-### 4. Start the flask server
+### Start the flask server
 To launch the login interface, run the Flask application by executing the following command in your terminal from the project’s root directory:
 
 ```bash
