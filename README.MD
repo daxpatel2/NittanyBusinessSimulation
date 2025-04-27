@@ -63,11 +63,10 @@ Make sure that all CSV files are in the root directory of your project, if not, 
 
 ## Usage
 
-To connect to the database, create the tables, and populate the tables, run the following:
+To connect to the database, create the tables, and populate the tables, run the following python code:
 
 ```python
-from database_queries import main
-main()
+database_queries.py
 ```
 
 ### 4. Start the flask server
