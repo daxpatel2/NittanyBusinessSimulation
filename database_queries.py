@@ -20,6 +20,7 @@ def connect():
         cursor = conn.cursor()
         print("Connected to 'project' database.")
         return conn, cursor
+    # create a database if it does not exist
     except psycopg2.OperationalError as e:
         if "does not exist" in str(e):
             print("'project' database not found. Creating it...")
@@ -1108,4 +1109,6 @@ def search_products(
     
 
 if __name__ == '__main__':
+    connect()
     create_tables()
+    populate_all_tables()
