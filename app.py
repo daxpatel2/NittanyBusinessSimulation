@@ -445,7 +445,7 @@ def review(order_id):
     return render_template('review_form.html',
                            order_id=order_id,
                            product_label=product_label)
-@app.route('/buyer/shopping_cart')
+@app.route('/shopping_cart')
 def shopping_cart():
     if session.get('role') != 'buyer':
         return redirect(url_for('mainpage'))
