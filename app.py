@@ -4,7 +4,7 @@ from database_queries import *
 
 # create flask app instance
 app = Flask(__name__)
-app.secret_key = "your_secret_key_here"  # needed for session management and flashing
+app.secret_key = "secret_key"  # needed for session management and flashing
 
 @app.route('/', methods=['GET', 'POST'])
 def mainpage():
@@ -214,33 +214,38 @@ def remove_listing(listing_id):
           "warning" if success else "danger")
     return redirect(url_for('manage_listings'))
 
+# Route to handle new orders (form and submission)
 @app.route('/order/<seller_email>/<int:listing_id>', methods=['GET','POST'])
 def order_form(seller_email, listing_id):
     buyer = session.get('email')
+    # only buyers may place orders
     if session.get('role')!='buyer' or not buyer:
-        return redirect(url_for('mainpage'))
+        return redirect(url_for('home_page'))
+    # fetch product details or show error if not found
     prod = get_product_details(seller_email, listing_id)
     if not prod:
         flash("product not found", "danger")
-        return redirect(url_for('buyer_home'))
-    cards = get_credit_cards_by_buyer(buyer)
+        return redirect(url_for('categories'))
+    cards = get_credit_cards_by_buyer(buyer)  # fetch saved cards
     if request.method=='POST':
-        qty = int(request.form['quantity'])
+        qty = int(request.form['quantity'])  # requested quantity
         card_choice = request.form.get('card_choice')
-        if card_choice=='new':
+        if card_choice=='new':  # adding a new card
             cc = request.form['cc_num']
             ctype = request.form['cc_type']
             em = int(request.form['cc_month'])
             ey = int(request.form['cc_year'])
             sc = request.form['cc_cvc']
-            add_credit_card(cc, ctype, em, ey, sc, buyer)
+            add_credit_card(cc, ctype, em, ey, sc, buyer)  # save new card
             chosen = cc
         else:
-            chosen = card_choice
+            chosen = card_choice  # use existing card
+        # attempt to insert order and update inventory
         success = insert_order(seller_email, listing_id, buyer, qty, chosen)
         flash("order placed successfully" if success else "order failed",
               "success" if success else "danger")
         return redirect(url_for('orders'))
+    # GET: show order form
     return render_template(
         'order_form.html',
         product=prod,
