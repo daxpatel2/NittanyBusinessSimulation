@@ -193,7 +193,6 @@ def get_promoted_listings(limit=None):
     return rows
 
 
-
 # imports and reads the CSV file and hashes the password
 def read_and_hash_password():
     users_df = pd.read_csv('Users.csv')
