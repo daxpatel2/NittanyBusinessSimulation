@@ -92,6 +92,8 @@ def buyer_home():
     if not email:
         return redirect(url_for('mainpage'))
 
+    promoted = get_promoted_listings()
+
     # Handle search form submission and category selection
     keywords = request.args.get('keywords', '')
     min_price_str = request.args.get('min_price', '')
@@ -116,7 +118,8 @@ def buyer_home():
                            search_performed=search_performed,
                            selected_category=category,
                            path=path,
-                           get_subcategories=get_subcategories)
+                           get_subcategories=get_subcategories,
+                           promoted=promoted)
 
 @app.route('/seller')
 def seller():
@@ -181,12 +184,12 @@ def manage_listings():
 
     # fetch all currently active promotions for this seller
     conn, cursor = connect()
-    # cursor.execute("""
-    #                SELECT listing_id
-    #                FROM promotions
-    #                WHERE seller_email = %s
-    #                """, (seller_email,))
-    # promoted_ids = {row[0] for row in cursor.fetchall()}
+    cursor.execute("""
+                   SELECT listing_id
+                   FROM promotions
+                   WHERE seller_email = %s
+                   """, (seller_email,))
+    promoted_ids = {row[0] for row in cursor.fetchall()}
     cursor.close()
     conn.close()
 
@@ -260,7 +263,6 @@ def promote_listing(listing_id):
     return redirect(url_for('manage_listings'))
 
 
-
 @app.route('/seller/listings/edit/<int:listing_id>', methods=['GET','POST'])
 def edit_listing(listing_id):
     if session.get('role') != 'seller':
@@ -284,7 +286,8 @@ def edit_listing(listing_id):
 def remove_listing(listing_id):
     if session.get('role') != 'seller':
         return redirect(url_for('mainpage'))
-    success = remove_listing(session['email'], listing_id)
+
+    success = remove_listing_db(session['email'],listing_id)
     flash("Listing removed" if success else "Error removing listing",
           "warning" if success else "danger")
     return redirect(url_for('manage_listings'))
@@ -494,4 +497,4 @@ def orders():
     return render_template('orders.html', orders=orders_with_rating)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=8000)

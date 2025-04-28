@@ -176,6 +176,17 @@ def create_tables():
                 rating VARCHAR(50),
                 FOREIGN KEY (order_id) REFERENCES orders(order_id)
         );"""
+
+        """CREATE TABLE IF NOT EXISTS promotions (
+                    promotion_id   SERIAL PRIMARY KEY,
+                    seller_email   VARCHAR(255) NOT NULL,
+                    listing_id     INTEGER     NOT NULL,
+                    fee FLOAT NOT NULL,
+                    CONSTRAINT fk_listing
+                      FOREIGN KEY (seller_email, listing_id)
+                      REFERENCES product_listings(seller_email, listing_id)
+                      ON DELETE CASCADE
+             );"""
     ]
 
     for sql in create_sql_statements:
@@ -193,6 +204,29 @@ def create_tables():
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+
+def get_promoted_listings(limit=None):
+    conn, cursor = connect()
+    cursor.execute(
+        """
+        SELECT p.seller_email,
+               p.listing_id,
+               p.category,
+               p.product_title,
+               p.product_name,
+               p.product_description,
+               p.quantity,
+               p.product_price
+        FROM product_listings p
+                 JOIN promotions promo
+                      ON p.seller_email = promo.seller_email
+                          AND p.listing_id = promo.listing_id
+        """
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
 
 # imports and reads the CSV file and hashes the password
 def read_and_hash_password():
@@ -446,6 +480,46 @@ def populate_product_listings():
     cursor.close()
     conn.close()
 
+def remove_listing_db(seller_email: str, listing_id: int) -> bool:
+    """
+    Permanently delete a listing and any associated promotions.
+    """
+    conn, cursor = connect()
+    if not conn or not cursor:
+        return False
+
+    try:
+        # 1) delete any promotions for this listing
+        cursor.execute(
+            """
+            DELETE FROM promotions
+             WHERE seller_email = %s
+               AND listing_id   = %s
+            """,
+            (seller_email, listing_id)
+        )
+
+        # 2) delete the listing itself
+        cursor.execute(
+            """
+            DELETE FROM product_listings
+             WHERE seller_email = %s
+               AND listing_id   = %s
+            """,
+            (seller_email, listing_id)
+        )
+
+        conn.commit()
+        return True
+
+    except Exception as e:
+        print("remove_listing error:", e)
+        conn.rollback()
+        return False
+
+    finally:
+        cursor.close()
+        conn.close()
 
 # function to populate orders table
 def populate_orders():

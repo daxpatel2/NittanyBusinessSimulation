@@ -299,6 +299,7 @@
 
   <!-- Main content area -->
   <div class="container">
+
     <!-- Main content (search and results) -->
     <div class="main-content">
       <h1>Nittany Business</h1>
@@ -368,6 +369,8 @@
         </div>
       </div>
       <!-- Results section -->
+
+
       <div class="main-content">
         <!-- Display search results if a search was performed -->
         {% if search_performed %}
@@ -379,6 +382,7 @@
             {% endif %}
           </div>
           <div class="section-header">Search Results</div>
+
           {% if products %}
             <div class="product-list">
               {% for product in products %}
@@ -395,6 +399,24 @@
             <p class="no-results">No products found matching your search criteria.</p>
           {% endif %}
         {% endif %}
+
+      {% if promoted %}
+                <div class="product-list">
+                  {% for prod in promoted %}
+                    <div class="product-card">
+                      <h3>{{ prod[3] }} – {{ prod[4] }}</h3>
+                      <p>{{ prod[5]|truncate(100) }}</p>
+                      <p><strong>Price:</strong> ${{ prod[7] }}</p>
+                      <p class="seller-info">Seller: {{ prod[0] }}</p>
+                      <a href="{{ url_for('product_detail',
+                                           seller_email=prod[0],
+                                           listing_id=prod[1]) }}">
+                        View Details
+                      </a>
+                    </div>
+                  {% endfor %}
+                </div>
+          {% endif %}
       </div>
     </div>
   </div>
