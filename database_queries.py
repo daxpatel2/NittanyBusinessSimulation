@@ -20,7 +20,6 @@ def connect():
         cursor = conn.cursor()
         print("Connected to 'project' database.")
         return conn, cursor
-    # create a database if it does not exist
     except psycopg2.OperationalError as e:
         if "does not exist" in str(e):
             print("'project' database not found. Creating it...")
@@ -57,7 +56,7 @@ def connect():
             print("Error connecting to database:", e)
             return None, None
 
-# create initial tables 
+# create initial tables
 def create_tables():
     conn, cursor = connect()
     if conn is None or cursor is None:
@@ -417,10 +416,21 @@ def populate_product_listings():
     listings_df = pd.read_csv('Product_Listings.csv')
     print("product listings csv read successfully.")
 
-    # clean product_price column by removing dollar sign and converting to numeric
+
+    # clean product_price column by removing dollar sign, commas, and whitespace
     if 'Product_Price' in listings_df.columns:
-        listings_df['Product_Price'] = listings_df['Product_Price'].replace({'\$': ''}, regex=True).str.strip()
-        listings_df['Product_Price'] = pd.to_numeric(listings_df['Product_Price'], errors='coerce')
+        # remove $ and commas, then strip any surrounding whitespace
+        listings_df['Product_Price'] = (
+            listings_df['Product_Price']
+              .astype(str)                              # ensure string
+              .replace({'\$': '', ',': ''}, regex=True) # strip $ and commas
+              .str.strip()                              # trim spaces
+        )
+        # convert to numeric, coerce errors, and (optionally) fill missing with 0.00
+        listings_df['Product_Price'] = pd.to_numeric(
+            listings_df['Product_Price'],
+            errors='coerce'
+        ).fillna(0.00)
 
     # sql insert statement for product_listings table
     insert_sql = """INSERT INTO product_listings 
@@ -490,18 +500,24 @@ def populate_reviews():
 
 # populate all tables in correct order to ensure no foreign key violations
 def populate_all_tables():
-    populate_zipcode_info()
-    populate_users()
-    populate_helpdesk()
-    populate_requests()
-    populate_buyers()
-    populate_credit_cards()
-    populate_address()
-    populate_sellers()
-    populate_categories()
-    populate_product_listings()
-    populate_orders()
-    populate_reviews()
+    create_tables()
+    populate_users()          # no FKs to other custom tables
+    populate_helpdesk()       # only FK → users
+
+    populate_address()        # parent for buyer.business_address_id
+    populate_zipcode_info()   # independent
+
+    populate_buyers()         # FK → users + address
+    populate_sellers()        # FK → users + address
+
+    populate_credit_cards()   # FK → buyer
+    populate_requests()       # FK → users
+
+    populate_categories()     # independent
+    populate_product_listings()  # FK → sellers
+
+    populate_orders()         # FK → buyer + product_listings
+    populate_reviews()        # FK → orders
 
 
 # fetches user data based on email and verifies the given password against the stored hash
@@ -1106,9 +1122,7 @@ def search_products(
         cursor.close()
         conn.close()
 
-    
+
 
 if __name__ == '__main__':
-    connect()
-    create_tables()
     populate_all_tables()
