@@ -1,27 +1,60 @@
-
 # imports
 import hashlib
 from typing import Optional
 import pandas as pd
 import psycopg2
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-#establish connection with database
+
+#establish connection with database (and create one if it doesn't exist)
 def connect():
     try:
+        # Try to connect to the target 'project' database
         conn = psycopg2.connect(
             dbname="project",
             user="postgres",
-            password="1234",
+            password="password",  #Replace with your actual password
             host="localhost",
             port="5432"
         )
-        # Create a cursor and execute a simple test query
         cursor = conn.cursor()
-        print("Connected to the database successfully.")
+        print("Connected to 'project' database.")
         return conn, cursor
-    except Exception as e:
-        print("Error connecting to the database:", e)
-        return None, None
+    except psycopg2.OperationalError as e:
+        if "does not exist" in str(e):
+            print("'project' database not found. Creating it...")
+            try:
+                # Connect to default 'postgres' database to create 'project'
+                default_conn = psycopg2.connect(
+                    dbname="postgres",
+                    user="postgres",
+                    password="password",
+                    host="localhost",
+                    port="5432"
+                )
+                default_conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+                default_cursor = default_conn.cursor()
+                default_cursor.execute("CREATE DATABASE project;")
+                default_cursor.close()
+                default_conn.close()
+                print("Database 'project' created successfully.")
+                # Retry connecting to the new database
+                conn = psycopg2.connect(
+                    dbname="project",
+                    user="postgres",
+                    password="password",
+                    host="localhost",
+                    port="5432"
+                )
+                cursor = conn.cursor()
+                print("Connected to 'project' database.")
+                return conn, cursor
+            except Exception as create_err:
+                print("Failed to create database:", create_err)
+                return None, None
+        else:
+            print("Error connecting to database:", e)
+            return None, None
 
 # create initial tables
 def create_tables():
@@ -143,17 +176,6 @@ def create_tables():
                 rating VARCHAR(50),
                 FOREIGN KEY (order_id) REFERENCES orders(order_id)
         );"""
-
-        """CREATE TABLE IF NOT EXISTS promotions (
-               promotion_id   SERIAL PRIMARY KEY,
-               seller_email   VARCHAR(255) NOT NULL,
-               listing_id     INTEGER     NOT NULL,
-               fee FLOAT NOT NULL,
-               CONSTRAINT fk_listing
-                 FOREIGN KEY (seller_email, listing_id)
-                 REFERENCES product_listings(seller_email, listing_id)
-                 ON DELETE CASCADE
-        );"""
     ]
 
     for sql in create_sql_statements:
@@ -170,28 +192,6 @@ def create_tables():
 # hash the password
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
-
-def get_promoted_listings(limit=None):
-    """
-    Returns a list of active promoted product tuples,
-    ordered by promotion date (newest first).
-    """
-    conn, cursor = connect()
-    cursor.execute(
-        """
-        SELECT p.seller_email, p.listing_id, p.category,
-               p.product_title, p.product_name, p.product_description,
-               p.quantity, p.product_price
-          FROM product_listings p
-          JOIN promotions promo
-            ON p.seller_email = promo.seller_email
-           AND p.listing_id   = promo.listing_id
-              """
-    )
-    rows = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return rows
 
 
 # imports and reads the CSV file and hashes the password
@@ -412,67 +412,39 @@ def populate_product_listings():
     if conn is None or cursor is None:
         print("connection failed, could not populate product_listings table.")
         return
-
-    # 1) Read CSV
+    # read product_listings.csv into dataframe
     listings_df = pd.read_csv('Product_Listings.csv')
-    print("Raw columns:", listings_df.columns.tolist())
+    print("product listings csv read successfully.")
 
-    # 2) Strip whitespace from headers
-    listings_df.columns = listings_df.columns.str.strip()
 
-    # 3) Clean prices: remove $ and commas, strip whitespace, coerce to numeric
-    listings_df['Product_Price'] = (
-        listings_df['Product_Price']
-          .astype(str)
-          .str.replace(r'[\$,]', '', regex=True)
-          .str.strip()
-    )
-    listings_df['Product_Price'] = pd.to_numeric(
-        listings_df['Product_Price'], errors='coerce'
-    )
-    print("Cleaned prices:", listings_df['Product_Price'].head(10).tolist(),
-          listings_df['Product_Price'].dtype)
+    # clean product_price column by removing dollar sign, commas, and whitespace
+    if 'Product_Price' in listings_df.columns:
+        # remove $ and commas, then strip any surrounding whitespace
+        listings_df['Product_Price'] = (
+            listings_df['Product_Price']
+              .astype(str)                              # ensure string
+              .replace({'\$': '', ',': ''}, regex=True) # strip $ and commas
+              .str.strip()                              # trim spaces
+        )
+        # convert to numeric, coerce errors, and (optionally) fill missing with 0.00
+        listings_df['Product_Price'] = pd.to_numeric(
+            listings_df['Product_Price'],
+            errors='coerce'
+        ).fillna(0.00)
 
-    # 4) Rename to match SQL column names exactly
-    listings_df = listings_df.rename(columns={
-        'Seller_Email':        'seller_email',
-        'Listing_ID':          'listing_id',
-        'Category':            'category',
-        'Product_Title':       'product_title',
-        'Product_Name':        'product_name',
-        'Product_Description': 'product_description',
-        'Quantity':            'quantity',
-        'Product_Price':       'product_price',
-        'Status':              'status',
-    })
-    print("Renamed columns:", listings_df.columns.tolist())
-
-    # 5) Build the list of values in the same order your INSERT expects
-    cols = [
-        'seller_email', 'listing_id', 'category',
-        'product_title', 'product_name', 'product_description',
-        'quantity', 'product_price', 'status'
-    ]
-    values = listings_df[cols].values.tolist()
-
-    # 6) Insert into the database
-    insert_sql = """
-      INSERT INTO product_listings
-        (seller_email, listing_id, category,
-         product_title, product_name, product_description,
-         quantity, product_price, status)
-      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-      ON CONFLICT DO NOTHING
-    """
+    # sql insert statement for product_listings table
+    insert_sql = """INSERT INTO product_listings 
+         (seller_email, listing_id, category, product_title, product_name, product_description, quantity, product_price, status)
+         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING"""
     try:
-        cursor.executemany(insert_sql, values)
+        # insert all product listing records
+        cursor.executemany(insert_sql, listings_df.values.tolist())
         conn.commit()
         print("product listings data imported successfully.")
     except Exception as e:
         print("error inserting product listings data:", e)
-    finally:
-        cursor.close()
-        conn.close()
+    cursor.close()
+    conn.close()
 
 
 # function to populate orders table
@@ -526,20 +498,26 @@ def populate_reviews():
     conn.close()
 
 
+# populate all tables in correct order to ensure no foreign key violations
 def populate_all_tables():
-    populate_users()
-    populate_address()
-    populate_zipcode_info()
-    populate_buyers()
-    populate_sellers()
-    populate_credit_cards()
-    populate_orders()
-    populate_product_listings()
-    populate_reviews()
-    populate_requests()
-    populate_categories()
-    populate_helpdesk()
+    create_tables()
+    populate_users()          # no FKs to other custom tables
+    populate_helpdesk()       # only FK → users
 
+    populate_address()        # parent for buyer.business_address_id
+    populate_zipcode_info()   # independent
+
+    populate_buyers()         # FK → users + address
+    populate_sellers()        # FK → users + address
+
+    populate_credit_cards()   # FK → buyer
+    populate_requests()       # FK → users
+
+    populate_categories()     # independent
+    populate_product_listings()  # FK → sellers
+
+    populate_orders()         # FK → buyer + product_listings
+    populate_reviews()        # FK → orders
 
 
 # fetches user data based on email and verifies the given password against the stored hash
@@ -632,30 +610,19 @@ def get_user_role(email: str) -> str:
 
 # this function retrieves subcategories from the database for a given parent category
 def get_subcategories(parent_category: str) -> list:
-    conn, cursor = connect()  # connect to the database
+    conn, cursor = connect()
     if conn is None or cursor is None:
-        return []  # if connection fails, return an empty list
-
-    # if the parent category is "All", attempt to get top-level categories defined in the categories table
+        return []
+    # Map "All" to "Root" to match the database structure
     if parent_category == "All":
         query = "SELECT category_name FROM categories WHERE parent_category = %s"
-        cursor.execute(query, ("All",))
-        results = cursor.fetchall()  # fetch all matching rows
-        # fallback: if no top-level categories were defined in the categories table,
-        # retrieve distinct categories from the product_listings table that are non-null and non-empty
-        if not results:
-            query = "SELECT DISTINCT category FROM product_listings WHERE category IS NOT NULL AND category <> ''"
-            cursor.execute(query)
-            results = cursor.fetchall()
+        cursor.execute(query, ("Root",))
     else:
-        # if the parent is a specific category, query the categories table for its subcategories
         query = "SELECT category_name FROM categories WHERE parent_category = %s"
         cursor.execute(query, (parent_category,))
-        results = cursor.fetchall()  # fetch all matching rows
-
+    results = cursor.fetchall()
     cursor.close()
     conn.close()
-    # process the fetched rows and return a simple list of subcategory names
     return [row[0] for row in results]
 
 
@@ -818,24 +785,21 @@ def update_product_listing(
 
 
 # soft‑deletes a listing by setting its status to inactive (0)
-def remove_product_listing(seller_email: str, listing_id: int) -> bool:
-
+def set_listing_status(seller_email: str, listing_id: int, status: int) -> bool:
     conn, cursor = connect()
-    if not conn or not cursor:
+    if not conn:
         return False
-
-    delete_sql = """
-                 DELETE \
-                 FROM product_listings
-                 WHERE seller_email = %s
-                   AND listing_id = %s \
-                 """
+    update_sql = """
+         UPDATE product_listings
+            SET status = %s
+          WHERE seller_email = %s
+            AND listing_id    = %s
+     """
     try:
-        cursor.execute(delete_sql, (seller_email, listing_id))
+        cursor.execute(update_sql, (status, seller_email, listing_id))  # update status field
         conn.commit()
-        return cursor.rowcount > 0  # True if a row was actually deleted
-    except Exception as e:
-        print("Error deleting product listing:", e)
+        return True
+    except Exception:
         conn.rollback()
         return False
     finally:
@@ -1016,13 +980,12 @@ def insert_review(order_id: int, review_desc: str, rating: int) -> bool:
         cursor.close()  # close cursor
         conn.close()  # close connection
 
-
 # calculates the average rating for a seller across all reviews
 def get_seller_average_rating(seller_email: str) -> Optional[float]:
     conn, cursor = connect()  # open DB connection
     if conn is None or cursor is None:
         return None  # abort if connection fails
-    # compute average rating, cast to numeric(10,2)
+    # compute average rating, cast review_desc to integer since columns are swapped
     sql = """
          SELECT AVG(r.rating::integer)::numeric(10,2)
            FROM reviews r
@@ -1035,19 +998,64 @@ def get_seller_average_rating(seller_email: str) -> Optional[float]:
     conn.close()  # close connection
     return float(result) if result is not None else None  # return average or None
 
+def get_all_subcategories(category: str) -> list:
+    """
+    Recursively fetch all subcategories (including the input category) for a given category.
+    Returns a list of category names.
+    """
+    conn, cursor = connect()
+    if conn is None or cursor is None:
+        return [category] if category != "All" else []
+
+    # Use a recursive CTE to fetch all subcategories
+    query = """
+        WITH RECURSIVE category_tree AS (
+            -- Base case: select the provided category (if it exists in categories)
+            SELECT category_name
+            FROM categories
+            WHERE category_name = %s
+            UNION ALL
+            -- Recursive case: select subcategories of categories already in the tree
+            SELECT c.category_name
+            FROM categories c
+            INNER JOIN category_tree ct ON c.parent_category = ct.category_name
+        )
+        SELECT category_name FROM category_tree
+    """
+    try:
+        # If category is "All", fetch all categories under "Root"
+        if category == "All":
+            cursor.execute(
+                "SELECT category_name FROM categories WHERE parent_category = %s",
+                ("Root",)
+            )
+        else:
+            cursor.execute(query, (category,))
+        results = cursor.fetchall()
+        return [row[0] for row in results]
+    except Exception as e:
+        print(f"Error fetching subcategories for {category}: {e}")
+        return [category]  # Fallback to just the input category
+    finally:
+        cursor.close()
+        conn.close()
 
 def search_products(
         keywords=None,
         min_price=None,
         max_price=None,
-        sort_by="relevance"):
+        sort_by="relevance",
+        category=None):
     conn, cursor = connect()
     if conn is None or cursor is None:
         return []
 
+    # Fetch all relevant categories (including subcategories)
+    categories = get_all_subcategories(category) if category else []
+
     # Start building the query
     query = """
-        SELECT p.seller_email, p.listing_id, p.category, p.product_title, 
+        SELECT p.seller_email, p.listing_id, p.category, p.product_title,
                p.product_name, p.product_description, p.quantity, p.product_price, p.status,
                s.business_name as seller_name
         FROM product_listings p
@@ -1057,27 +1065,29 @@ def search_products(
 
     params = []
 
+    # Add category filter if provided and not "All"
+    if categories and category != "All":
+        # Use IN clause to match any of the categories (including subcategories)
+        placeholders = ", ".join(["%s"] * len(categories))
+        query += f" AND p.category IN ({placeholders})"
+        params.extend(categories)
+
     # Add keyword search if provided
     if keywords and keywords.strip():
-        # Split keywords into individual terms
         keyword_terms = keywords.strip().split()
         keyword_conditions = []
 
         for term in keyword_terms:
-            # Create ILIKE condition for each searchable field
-            # ILIKE is used for case-insensitive matching
             term_with_wildcards = f"%{term}%"
             keyword_conditions.append("""
-                (p.product_title ILIKE %s OR 
-                 p.product_name ILIKE %s OR 
-                 p.product_description ILIKE %s OR 
-                 p.category ILIKE %s OR 
+                (p.product_title ILIKE %s OR
+                 p.product_name ILIKE %s OR
+                 p.product_description ILIKE %s OR
+                 p.category ILIKE %s OR
                  s.business_name ILIKE %s)
             """)
-            # Add the parameter 5 times for each field in the condition
             params.extend([term_with_wildcards] * 5)
 
-        # Join all keyword conditions with OR
         if keyword_conditions:
             query += " AND (" + " OR ".join(keyword_conditions) + ")"
 
@@ -1096,11 +1106,7 @@ def search_products(
     elif sort_by == "price_high_low":
         query += " ORDER BY p.product_price DESC"
     else:  # Default to relevance
-        # For relevance sorting, if keywords are provided, we can use a relevance score
-        # Otherwise, just sort by listing_id
         if keywords and keywords.strip():
-            # This is a simple relevance implementation
-            # In a real system, you might use more sophisticated scoring
             query += " ORDER BY p.listing_id DESC"
         else:
             query += " ORDER BY p.listing_id DESC"
@@ -1116,6 +1122,7 @@ def search_products(
         cursor.close()
         conn.close()
 
+
+
 if __name__ == '__main__':
-    create_tables()
     populate_all_tables()
