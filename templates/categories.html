@@ -1,0 +1,215 @@
+
+
+<!doctype html>
+<html lang="en">
+	<head> <!-- steup general style for page-->
+    <meta charset="utf-8">
+    <title>Category Hierarchy</title>
+    <style>
+      /* reset & base */
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        background: #eef2f5;
+        color: #333;
+        line-height: 1.6;
+      }
+      a { text-decoration: none; color: inherit; }
+
+      /* container */
+      .container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+
+      /* navbar */
+      .navbar {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 30px;
+      }
+      .navbar .btn-home {
+        background: #0052cc;
+        color: #fff;
+        padding: 10px 18px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        transition: background 0.3s ease;
+      }
+      .navbar .btn-home:hover {
+        background: #003fa3;
+      }
+
+      /* headings */
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+      }
+      h3 {
+        font-size: 1.2rem;
+        margin: 20px 0 10px;
+        color: #555;
+      }
+
+      /* subcategories grid */
+      .subcategories {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        margin-bottom: 30px;
+      }
+      .subcategories a {
+        display: block;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 12px;
+        text-align: center;
+        font-weight: 500;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .subcategories a:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+
+      /* product cards grid */
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        margin-bottom: 30px;
+      }
+      .card {
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      }
+      .card-body {
+        padding: 16px;
+      }
+      .card-body h5 {
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+        color: #222;
+      }
+      .card-body p {
+        font-size: 0.95rem;
+        margin-bottom: 12px;
+        color: #555;
+      }
+
+      /* buttons */
+      .btn {
+        display: inline-block;
+        padding: 8px 14px;
+        background: linear-gradient(135deg, #0052cc, #2673e6);
+        color: #fff;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        transition: background 0.3s ease;
+      }
+      .btn:hover {
+        background: linear-gradient(135deg, #003fa3, #1e5ab8);
+      }
+      .btn-back {
+        display: inline-block;
+        padding: 8px 14px;
+        background: #777;
+        color: #fff;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        transition: background 0.3s ease;
+      }
+      .btn-back:hover {
+        background: #555;
+      }
+
+      hr {
+        border: none;
+        border-top: 1px solid #ddd;
+        margin: 30px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- navbar -->
+      <nav class="navbar">
+        <a href="{{ url_for('buyer') }}" class="btn-home">Home</a>
+      </nav>
+
+    <h2>Featured Promotions</h2>
+    {% if promoted %}
+      <ul class="promoted-list">
+        {% for item in promoted %}
+          <li>
+            <a href="{{ url_for('product_detail',
+                                seller_email=item[0],
+                                listing_id=item[1]) }}">
+              {{ item[3] }} – {{ item[4] }} (${{
+                  item[7] }})
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No promotions right now.</p>
+    {% endif %}
+	<!-- display categories and subcategories-->
+      <h1>Category: {{ parent }}</h1>
+
+      {% if subcategories %}
+        <h3>Subcategories</h3>
+        <div class="subcategories">
+          {% for sub in subcategories %}
+            <a href="{{ url_for('categories') }}?parent={{ sub }}">
+              {{ sub }}
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No subcategories available.</p>
+      {% endif %}
+
+      <hr>
+      <!-- display the products within that category-->
+      {% if products %}
+        <h3>Products in “{{ parent }}”</h3>
+        <div class="card-grid">
+          {% for product in products %}
+            <div class="card">
+              <div class="card-body">
+                <h5>{{ product[2] }} – {{ product[3] }}</h5>
+                <p>{{ product[4] }}</p>
+                <p><strong>Price:</strong> ${{ product[6] }}</p>
+                <a href="{{ url_for('product_detail',
+                                     seller_email=product[0],
+                                     listing_id=product[1]) }}"
+                   class="btn">
+                  View Details
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>No products found in this category.</p>
+      {% endif %}
+
+      <hr>
+
+      <a href="{{ url_for('categories') }}?parent=All" class="btn-back">
+        Back to root
+      </a>
+    </div>
+  </body>
+</html>
+
