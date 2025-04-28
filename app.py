@@ -280,6 +280,7 @@ def remove_listing(listing_id):
 @app.route('/categories')
 def categories():
     parent = request.args.get('parent', 'All')  # current category (default 'All')
+    promoted = []
     if parent == "All":
         # 1) fetch promoted products
         promoted = get_promoted_listings()

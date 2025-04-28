@@ -412,28 +412,67 @@ def populate_product_listings():
     if conn is None or cursor is None:
         print("connection failed, could not populate product_listings table.")
         return
-    # read product_listings.csv into dataframe
+
+    # 1) Read CSV
     listings_df = pd.read_csv('Product_Listings.csv')
-    print("product listings csv read successfully.")
+    print("Raw columns:", listings_df.columns.tolist())
 
-    # clean product_price column by removing dollar sign and converting to numeric
-    if 'Product_Price' in listings_df.columns:
-        listings_df['Product_Price'] = listings_df['Product_Price'].replace({'\$': ''}, regex=True).str.strip()
-        listings_df['Product_Price'] = pd.to_numeric(listings_df['Product_Price'], errors='coerce')
+    # 2) Strip whitespace from headers
+    listings_df.columns = listings_df.columns.str.strip()
 
-    # SQL insert statement for product_listings table
-    insert_sql = """INSERT INTO product_listings 
-         (seller_email, listing_id, category, product_title, product_name, product_description, quantity, product_price, status)
-         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING"""
+    # 3) Clean prices: remove $ and commas, strip whitespace, coerce to numeric
+    listings_df['Product_Price'] = (
+        listings_df['Product_Price']
+          .astype(str)
+          .str.replace(r'[\$,]', '', regex=True)
+          .str.strip()
+    )
+    listings_df['Product_Price'] = pd.to_numeric(
+        listings_df['Product_Price'], errors='coerce'
+    )
+    print("Cleaned prices:", listings_df['Product_Price'].head(10).tolist(),
+          listings_df['Product_Price'].dtype)
+
+    # 4) Rename to match SQL column names exactly
+    listings_df = listings_df.rename(columns={
+        'Seller_Email':        'seller_email',
+        'Listing_ID':          'listing_id',
+        'Category':            'category',
+        'Product_Title':       'product_title',
+        'Product_Name':        'product_name',
+        'Product_Description': 'product_description',
+        'Quantity':            'quantity',
+        'Product_Price':       'product_price',
+        'Status':              'status',
+    })
+    print("Renamed columns:", listings_df.columns.tolist())
+
+    # 5) Build the list of values in the same order your INSERT expects
+    cols = [
+        'seller_email', 'listing_id', 'category',
+        'product_title', 'product_name', 'product_description',
+        'quantity', 'product_price', 'status'
+    ]
+    values = listings_df[cols].values.tolist()
+
+    # 6) Insert into the database
+    insert_sql = """
+      INSERT INTO product_listings
+        (seller_email, listing_id, category,
+         product_title, product_name, product_description,
+         quantity, product_price, status)
+      VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+      ON CONFLICT DO NOTHING
+    """
     try:
-        # insert all product listing records
-        cursor.executemany(insert_sql, listings_df.values.tolist())
+        cursor.executemany(insert_sql, values)
         conn.commit()
         print("product listings data imported successfully.")
     except Exception as e:
         print("error inserting product listings data:", e)
-    cursor.close()
-    conn.close()
+    finally:
+        cursor.close()
+        conn.close()
 
 
 # function to populate orders table
@@ -489,17 +528,18 @@ def populate_reviews():
 
 def populate_all_tables():
     populate_users()
-    populate_helpdesk()
-    populate_requests()
-    populate_buyers()
-    populate_credit_cards()
     populate_address()
     populate_zipcode_info()
+    populate_buyers()
     populate_sellers()
-    populate_categories()
-    populate_product_listings()
+    populate_credit_cards()
     populate_orders()
+    populate_product_listings()
     populate_reviews()
+    populate_requests()
+    populate_categories()
+    populate_helpdesk()
+
 
 
 # fetches user data based on email and verifies the given password against the stored hash
@@ -1078,3 +1118,4 @@ def search_products(
 
 if __name__ == '__main__':
     create_tables()
+    populate_all_tables()
