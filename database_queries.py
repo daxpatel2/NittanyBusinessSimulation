@@ -142,6 +142,17 @@ def create_tables():
                 rating VARCHAR(50),
                 FOREIGN KEY (order_id) REFERENCES orders(order_id)
         );"""
+
+        """CREATE TABLE IF NOT EXISTS promotions (
+               promotion_id   SERIAL PRIMARY KEY,
+               seller_email   VARCHAR(255) NOT NULL,
+               listing_id     INTEGER     NOT NULL,
+               fee FLOAT NOT NULL,
+               CONSTRAINT fk_listing
+                 FOREIGN KEY (seller_email, listing_id)
+                 REFERENCES product_listings(seller_email, listing_id)
+                 ON DELETE CASCADE
+        );"""
     ]
 
     for sql in create_sql_statements:
@@ -158,6 +169,29 @@ def create_tables():
 # hash the password
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
+
+def get_promoted_listings(limit=None):
+    """
+    Returns a list of active promoted product tuples,
+    ordered by promotion date (newest first).
+    """
+    conn, cursor = connect()
+    cursor.execute(
+        """
+        SELECT p.seller_email, p.listing_id, p.category,
+               p.product_title, p.product_name, p.product_description,
+               p.quantity, p.product_price
+          FROM product_listings p
+          JOIN promotions promo
+            ON p.seller_email = promo.seller_email
+           AND p.listing_id   = promo.listing_id
+              """
+    )
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return rows
+
 
 
 # imports and reads the CSV file and hashes the password
@@ -387,7 +421,7 @@ def populate_product_listings():
         listings_df['Product_Price'] = listings_df['Product_Price'].replace({'\$': ''}, regex=True).str.strip()
         listings_df['Product_Price'] = pd.to_numeric(listings_df['Product_Price'], errors='coerce')
 
-    # sql insert statement for product_listings table
+    # SQL insert statement for product_listings table
     insert_sql = """INSERT INTO product_listings 
          (seller_email, listing_id, category, product_title, product_name, product_description, quantity, product_price, status)
          VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING"""
@@ -744,21 +778,24 @@ def update_product_listing(
 
 
 # soft‑deletes a listing by setting its status to inactive (0)
-def set_listing_status(seller_email: str, listing_id: int, status: int) -> bool:
+def remove_product_listing(seller_email: str, listing_id: int) -> bool:
+
     conn, cursor = connect()
-    if not conn:
+    if not conn or not cursor:
         return False
-    update_sql = """
-         UPDATE product_listings
-            SET status = %s
-          WHERE seller_email = %s
-            AND listing_id    = %s
-     """
+
+    delete_sql = """
+                 DELETE \
+                 FROM product_listings
+                 WHERE seller_email = %s
+                   AND listing_id = %s \
+                 """
     try:
-        cursor.execute(update_sql, (status, seller_email, listing_id))  # update status field
+        cursor.execute(delete_sql, (seller_email, listing_id))
         conn.commit()
-        return True
-    except Exception:
+        return cursor.rowcount > 0  # True if a row was actually deleted
+    except Exception as e:
+        print("Error deleting product listing:", e)
         conn.rollback()
         return False
     finally:

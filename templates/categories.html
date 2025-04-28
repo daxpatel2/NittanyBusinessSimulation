@@ -143,6 +143,24 @@
       <nav class="navbar">
         <a href="{{ url_for('buyer') }}" class="btn-home">Home</a>
       </nav>
+
+    <h2>Featured Promotions</h2>
+    {% if promoted %}
+      <ul class="promoted-list">
+        {% for item in promoted %}
+          <li>
+            <a href="{{ url_for('product_detail',
+                                seller_email=item[0],
+                                listing_id=item[1]) }}">
+              {{ item[3] }} – {{ item[4] }} (${{
+                  item[7] }})
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No promotions right now.</p>
+    {% endif %}
 	<!-- display categories and subcategories-->
       <h1>Category: {{ parent }}</h1>
 

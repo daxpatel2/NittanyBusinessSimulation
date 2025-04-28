@@ -1,11 +1,15 @@
 # app.py
+from decimal import Decimal
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from datetime import datetime
 from database_queries import *
 
 # create flask app instance
 app = Flask(__name__)
-app.secret_key = "your_secret_key_here"  # needed for session management and flashing
+
+app.secret_key = "super secret key"
+
 @app.route('/', methods=['GET', 'POST'])
 def home_page():
     # message variable to store error or success messages for login
@@ -144,9 +148,69 @@ def manage_listings():
     # ensure only a seller can access this page
     if session.get('role') != 'seller':
         return redirect(url_for('home_page'))  # redirect others back home
+
     seller_email = session['email']  # get seller's email from session
     listings = get_listings_by_seller(seller_email)  # fetch listings from DB
-    return render_template('seller_listings.html', listings=listings)  # render template with data
+
+    # fetch all currently active promotions for this seller
+    conn, cursor = connect()
+    cursor.execute("""
+                   SELECT listing_id
+                   FROM promotions
+                   WHERE seller_email = %s
+                   """, (seller_email,))
+    promoted_ids = {row[0] for row in cursor.fetchall()}
+    cursor.close()
+    conn.close()
+
+    return render_template('seller_listings.html', listings=listings, promoted_ids=promoted_ids)  # render template with data
+
+
+@app.route('/seller/listings/promote/<int:listing_id>', methods=['POST'])
+def promote_listing(listing_id):
+    # 1) ensure seller owns this listing
+    seller_email = session.get('email')
+    if session.get('role') != 'seller':
+        flash("You’re not allowed to do that.", "danger")
+        return redirect(url_for('manage_listings'))
+
+    # 2) calculate fee and charge (replace with your real logic)
+    conn, cursor = connect()
+    cursor.execute(
+        "SELECT product_price FROM product_listings "
+        "WHERE seller_email=%s AND listing_id=%s",
+        (seller_email, listing_id)
+    )
+    row = cursor.fetchone()
+    if not row:
+        flash("Listing not found.", "danger")
+        cursor.close(); conn.close()
+        return redirect(url_for('manage_listings'))
+
+    price = row[0]
+    fee = price * Decimal("0.05")
+
+    # 3) insert promotion record
+    try:
+        cursor.execute(
+          "INSERT INTO promotions (seller_email, listing_id, fee) "
+          "VALUES (%s, %s, %s)",
+          (seller_email, listing_id, fee)
+        )
+        conn.commit()
+        flash("Your product is now promoted!", "success")
+    except psycopg2.IntegrityError:
+        conn.rollback()
+        flash("This product is already promoted.", "info")
+    except Exception as e:
+        conn.rollback()
+        flash("Error promoting product.", "danger")
+        print("Promote error:", e)
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('manage_listings'))
 
 
 # Route to create a new listing for the logged-in seller
@@ -200,13 +264,15 @@ def edit_listing(listing_id):
 # Route to soft-delete (deactivate) a listing by setting its status to inactive (0)
 @app.route('/seller/listings/remove/<int:listing_id>')
 def remove_listing(listing_id):
-    # only sellers allowed
     if session.get('role') != 'seller':
+        flash("You must be a seller to remove a listing.", "danger")
         return redirect(url_for('home_page'))
-    # update status to 0 (inactive)
-    success = set_listing_status(session['email'], listing_id, 0)
-    flash("Listing removed" if success else "Error removing listing",
-          "warning" if success else "danger")
+
+    success = remove_product_listing(session['email'], listing_id)
+    if success:
+        flash("Listing removed successfully.", "warning")
+    else:
+        flash("Error removing listing.", "danger")
     return redirect(url_for('manage_listings'))
 
 
@@ -215,6 +281,8 @@ def remove_listing(listing_id):
 def categories():
     parent = request.args.get('parent', 'All')  # current category (default 'All')
     if parent == "All":
+        # 1) fetch promoted products
+        promoted = get_promoted_listings()
         subcategories = get_subcategories(parent)  # fetch all top-level subcats
         products = []  # no direct products under 'All'
     else:
@@ -224,7 +292,8 @@ def categories():
     return render_template('categories.html',
                            parent=parent,
                            subcategories=subcategories,
-                           products=products)
+                           products=products,
+                           promoted=promoted)
 
 
 # Route to handle new orders (form and submission)
@@ -448,5 +517,4 @@ def search_products_route():
 
 # main driver to run flask app
 if __name__ == '__main__':
-    # run flask app with debug mode on (shows detailed error logs in browser)
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)
