@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from datetime import datetime
 from database_queries import *
+from decimal import Decimal
 
 # create flask app instance
 app = Flask(__name__)
@@ -163,28 +164,81 @@ def system_admin():
         return redirect(url_for('mainpage'))
     return render_template('system_admin.html', email=email)
 
+# @app.route('/seller/listings')
+# def manage_listings():
+#     if session.get('role') != 'seller':
+#         return redirect(url_for('mainpage'))
+#     return redirect(url_for('seller'))
+
 @app.route('/seller/listings')
 def manage_listings():
+    # ensure only a seller can access this page
     if session.get('role') != 'seller':
-        return redirect(url_for('mainpage'))
-    return redirect(url_for('seller'))
+        return redirect(url_for('home_page'))  # redirect others back home
 
-@app.route('/seller/listings/new', methods=['GET','POST'])
-def new_listing():
+    seller_email = session['email']  # get seller's email from session
+    listings = get_listings_by_seller(seller_email)  # fetch listings from DB
+
+    # fetch all currently active promotions for this seller
+    conn, cursor = connect()
+    cursor.execute("""
+                   SELECT listing_id
+                   FROM promotions
+                   WHERE seller_email = %s
+                   """, (seller_email,))
+    promoted_ids = {row[0] for row in cursor.fetchall()}
+    cursor.close()
+    conn.close()
+
+    return render_template('seller_listings.html', listings=listings, promoted_ids=promoted_ids)  # render template with data
+
+@app.route('/seller/listings/promote/<int:listing_id>', methods=['POST'])
+def promote_listing(listing_id):
+    # 1) ensure seller owns this listing
+    seller_email = session.get('email')
     if session.get('role') != 'seller':
-        return redirect(url_for('mainpage'))
-    if request.method == 'POST':
-        data = request.form
-        success = insert_product_listing(
-            session['email'],
-            data['category'], data['product_title'], data['product_name'],
-            data['product_description'], int(data['quantity']), float(data['product_price'])
-        )
-        flash("Listing created" if success else "Error creating listing",
-              "success" if success else "danger")
+        flash("You’re not allowed to do that.", "danger")
         return redirect(url_for('manage_listings'))
-    top_categories = get_subcategories('All')
-    return render_template('seller_new_listing.html', categories=top_categories)
+
+    # 2) calculate fee and charge (replace with your real logic)
+    conn, cursor = connect()
+    cursor.execute(
+        "SELECT product_price FROM product_listings "
+        "WHERE seller_email=%s AND listing_id=%s",
+        (seller_email, listing_id)
+    )
+    row = cursor.fetchone()
+    if not row:
+        flash("Listing not found.", "danger")
+        cursor.close(); conn.close()
+        return redirect(url_for('manage_listings'))
+
+    price = row[0]
+    fee = price * Decimal("0.05")
+
+    # 3) insert promotion record
+    try:
+        cursor.execute(
+          "INSERT INTO promotions (seller_email, listing_id, fee) "
+          "VALUES (%s, %s, %s)",
+          (seller_email, listing_id, fee)
+        )
+        conn.commit()
+        flash("Your product is now promoted!", "success")
+    except psycopg2.IntegrityError:
+        conn.rollback()
+        flash("This product is already promoted.", "info")
+    except Exception as e:
+        conn.rollback()
+        flash("Error promoting product.", "danger")
+        print("Promote error:", e)
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('manage_listings'))
+
+
 
 @app.route('/seller/listings/edit/<int:listing_id>', methods=['GET','POST'])
 def edit_listing(listing_id):
@@ -209,7 +263,7 @@ def edit_listing(listing_id):
 def remove_listing(listing_id):
     if session.get('role') != 'seller':
         return redirect(url_for('mainpage'))
-    success = set_listing_status(session['email'], listing_id, 0)
+    success = remove_listing(session['email'], listing_id)
     flash("Listing removed" if success else "Error removing listing",
           "warning" if success else "danger")
     return redirect(url_for('manage_listings'))
