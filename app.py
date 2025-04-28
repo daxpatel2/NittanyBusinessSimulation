@@ -174,7 +174,7 @@ def system_admin():
 def manage_listings():
     # ensure only a seller can access this page
     if session.get('role') != 'seller':
-        return redirect(url_for('home_page'))  # redirect others back home
+        return redirect(url_for('mainpage'))  # redirect others back home
 
     seller_email = session['email']  # get seller's email from session
     listings = get_listings_by_seller(seller_email)  # fetch listings from DB
@@ -191,6 +191,27 @@ def manage_listings():
     conn.close()
 
     return render_template('seller_listings.html', listings=listings, promoted_ids=promoted_ids)  # render template with data
+# Route to create a new listing for the logged-in seller
+@app.route('/seller/listings/new', methods=['GET','POST'])
+def new_listing():
+    # only sellers may add new listings
+    if session.get('role') != 'seller':
+        return redirect(url_for('home_page'))
+    if request.method == 'POST':
+        data = request.form  # get form data
+        # call helper to insert listing into DB
+        success = insert_product_listing(
+            session['email'],
+            data['category'], data['product_title'], data['product_name'],
+            data['product_description'], int(data['quantity']), float(data['product_price'])
+        )
+        # show flash message on success or failure
+        flash("Listing created" if success else "Error creating listing",
+              "success" if success else "danger")
+        return redirect(url_for('manage_listings'))  # back to listings view
+    # GET request: show form with category options
+    top_categories = get_subcategories('All')
+    return render_template('seller_new_listing.html', categories=top_categories)
 
 @app.route('/seller/listings/promote/<int:listing_id>', methods=['POST'])
 def promote_listing(listing_id):
