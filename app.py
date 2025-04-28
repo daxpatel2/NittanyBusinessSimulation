@@ -181,16 +181,16 @@ def manage_listings():
 
     # fetch all currently active promotions for this seller
     conn, cursor = connect()
-    cursor.execute("""
-                   SELECT listing_id
-                   FROM promotions
-                   WHERE seller_email = %s
-                   """, (seller_email,))
-    promoted_ids = {row[0] for row in cursor.fetchall()}
+    # cursor.execute("""
+    #                SELECT listing_id
+    #                FROM promotions
+    #                WHERE seller_email = %s
+    #                """, (seller_email,))
+    # promoted_ids = {row[0] for row in cursor.fetchall()}
     cursor.close()
     conn.close()
 
-    return render_template('seller_listings.html', listings=listings, promoted_ids=promoted_ids)  # render template with data
+    return render_template('seller_listings.html', listings=listings)  # render template with data
 # Route to create a new listing for the logged-in seller
 @app.route('/seller/listings/new', methods=['GET','POST'])
 def new_listing():
